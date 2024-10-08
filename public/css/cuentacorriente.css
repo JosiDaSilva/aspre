@@ -1,0 +1,87 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.main-header {
+    background-color: #1604bd;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.logo {
+    flex: 0 0 auto; /* No crecer ni encoger */
+    margin-right: 20px;
+}
+
+.logo {
+    height: 100px; /* Ajusta la altura del logo */
+}
+
+.welcome-message {
+    flex: 1; /* Permite que el mensaje ocupe el espacio restante */
+    text-align: right;
+    font-size: 1.2em;
+}
+
+.main-content {
+    padding: 20px;
+}
+
+h1 {
+    font-size: 2em;
+    color: #333;
+}
+
+.movements-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.movements-table th, .movements-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.movements-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+.movements-table tbody tr:hover {
+    background-color: #f1f1f1; /* Color de fondo al pasar el ratón */
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center; /* Centra la paginación */
+}
+
+.pagination-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.pagination-button:hover {
+    background-color: #0056b3; /* Color de fondo al pasar el ratón */
+}
+
+.pagination-button:disabled {
+    background-color: #ccc; /* Botón deshabilitado */
+    cursor: not-allowed; /* Cambia el cursor cuando está deshabilitado */
+}

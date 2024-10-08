@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestros Precios</title>
+    <link rel="stylesheet" href="/css/precios.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Incluye jQuery -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <a href="/inicio"> <!-- Enlace que redirige a la página inicio.ejs -->
+                    <img src="/images/logo.png" alt="Logo de la Empresa" class="logo">
+                </a>
+            </div>
+            <h1>Lista de Precios</h1>
+            <p>Consulta nuestros precios y artículos disponibles.</p>
+        </header>
+        
+        <!-- Ícono de carrito, con enlace a la página carritos.ejs -->
+        <div>
+            <span id="carrito-icon" class="carrito-icon" title="Ver carrito">🛒</span>
+        </div>
+
+        <!-- Cuadro de búsqueda -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar por código o nombre...">
+            <button onclick="buscarArticulos()">Buscar</button>
+        </div>
+
+        <div class="grid" id="articulosGrid">
+            <% if (articulos && articulos.length > 0) { %>
+                <% articulos.forEach(function(articulo) { %>
+                    <div class="item" data-codbar="<%= articulo.codbar %>" data-denom="<%= articulo.denom.toLowerCase() %>">
+                        <img class="product-image" src="/images/<%= articulo.codbar.replace(/\s+/g, '-') %>.jpg" alt="<%= articulo.denom %>" onerror="this.onerror=null; this.src='/images/logo.png';">
+                        <p>Codigo de barra: <strong><%= articulo.codbar %></strong></p>
+                        <h2 class="product-name"><%= articulo.denom %></h2>
+                        <p class="precio">Precio: <span>$<%= articulo.precio.toFixed(2) %></span></p>
+                        <p>Stock Misiones: <strong><%= articulo.stock %></strong></p>
+                        <p>Stock Corrientes: <strong><%= articulo.stkcor %></strong></p>
+                        <input type="number" id="cantidad-<%= articulo.codbar %>" class="quantity-input" placeholder="Cantidad" min="1">
+                        <div class="button-group">
+                            <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Misiones')">Agregar al carrito Misiones</button>
+                            <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Corrientes')">Agregar al carrito Corrientes</button>
+                            <button class="equivalence-button" data-codbar="<%= articulo.codbar %>">Ver Equivalencia</button>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p>No se encontraron artículos.</p>
+            <% } %>
+        </div>
+
+        <!-- Navegación de paginación -->
+        <nav>
+            <% if (page > 1) { %>
+                <a href="/precios?page=<%= page - 1 %>">Anterior</a>
+            <% } %>
+            <a href="/precios?page=<%= page + 1 %>">Siguiente</a>
+        </nav>
+    </div>
+   <!-- Modal para mostrar el carrito -->
+   <div id="carrito-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Carrito de Compras</h2>
+            <div id="carrito-items">
+                <!-- Los artículos del carrito se cargarán aquí -->
+            </div>
+            <button id="enviar-pedido">Enviar Pedido</button>
+        </div>
+    </div>
+    <!-- Modal para mostrar equivalencias -->
+    <div id="equivalencias-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-equivalencias">&times;</span>
+            <h2>Equivalencias</h2>
+            <div id="equivalencias-items">
+                <!-- Las equivalencias se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+    <script>
+               $(document).ready(function() {
+            // Abrir el modal
+            $("#carrito-icon").click(function() {
+                $.get("/carrito", function(data) {
+                    let itemsHtml = '';
+                    let total = 0; // Variable para calcular el total
+    
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            itemsHtml += `
+                                <div class="carrito-item">
+                                    <img src="/images/logo.png" class="carrito-img">
+                                    <div class="carrito-details">
+                                        <p>${item.codbar}</p>
+                                        <p>${item.descripcion}</p>                                       
+                                        <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
+                                        <p>Precio: $${item.precio.toFixed(2)}</p>
+                                        <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p> <!-- Muestra el total del artículo -->
+                                        <p>Articulo para Zona: ${item.zona}</p> <!-- Aquí se muestra la zona -->
+                                        <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
+                                        <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button> <!-- Botón de eliminar -->
+                                       
+                                    </div>
+                                </div>`;
+                            total += item.precio * item.cantidad; // Sumar al total
+                        });
+                    } else {
+                        itemsHtml = '<p>No hay artículos en el carrito.</p>';
+                    }
+    
+                    $("#carrito-items").html(itemsHtml);
+                    $("#carrito-items").append(`<p class="total">Total: $${total.toFixed(2)}</p>`); // Mostrar total
+                    $("#carrito-modal").show();
+                });
+            });
+    
+            // Cerrar el modal
+            $(".close").click(function() {
+                $("#carrito-modal").hide();
+            });
+    
+            // Cerrar el modal si se hace clic fuera de él
+            $(window).click(function(event) {
+                if (event.target == document.getElementById('carrito-modal')) {
+                    $("#carrito-modal").hide();
+                }
+            });
+    
+            // Manejar el envío del pedido
+            $("#enviar-pedido").click(function() {
+                // Preguntar a qué sucursal desea enviar el pedido
+                const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+
+                if (sucursal === null) {
+                    return; // Si el usuario cancela, no se envía el pedido
+                }
+
+                // Definir zona en base a la sucursal seleccionada
+                let zona;
+                if (sucursal.toLowerCase() === '1') {
+                    zona = 1; // Zona 1 es Misiones
+                } else if (sucursal.toLowerCase() === '2') {
+                    zona = 2; // Zona 2 es Corrientes
+                } else {
+                    alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
+                    return;
+                }
+
+                // Pedir transporte y observación
+                const transporte = prompt("Por favor, escribe el transporte:");
+                const obs = prompt("Por favor, escribe una observación (opcional):");
+
+                // Realizar la solicitud POST con la zona seleccionada
+                $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
+                    .done(function(response) {
+                        alert(response.message);
+                        $("#carrito-modal").hide(); // Cerrar el modal del carrito
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al enviar el pedido.");
+                    });
+            });
+
+
+    
+            // Actualizar la cantidad
+            $(document).on('click', '.actualizar-btn', function() {
+                const codbar = $(this).data('codbar');
+                const nuevaCantidad = $(this).siblings('.cantidad-input').val();
+    
+                $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
+                    .done(function(response) {
+                        alert("Cantidad actualizada con éxito.");
+                        // Recalcular y actualizar el total
+                        actualizarTotal();
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al actualizar la cantidad.");
+                    });
+            });
+    
+            // Eliminar artículo del carrito
+            $(document).on('click', '.eliminar-btn', function() {
+                const codbar = $(this).data('codbar');
+    
+                $.post("/eliminar-articulo", { codbar: codbar })
+                    .done(function(response) {
+                        alert("Artículo eliminado con éxito.");
+                        // Volver a cargar los artículos del carrito
+                        $("#carrito-icon").click();
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al eliminar el artículo.");
+                    });
+            });
+    
+            // Función para recalcular el total del carrito
+            function actualizarTotal() {
+                let total = 0;
+    
+                $(".carrito-item").each(function() {
+                    const cantidad = $(this).find('.cantidad-input').val();
+                    const precio = parseFloat($(this).find('p').eq(1).text().replace("Precio: $", ""));
+                    const itemTotal = precio * cantidad; // Calcula el total por artículo
+                    $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`); // Actualiza el total del artículo
+                    total += itemTotal; // Sumar al total general
+                });
+    
+                $(".total").text(`Total: $${total.toFixed(2)}`); // Actualiza el total del carrito
+            }
+        });
+        // Función para buscar artículos
+        function buscarArticulos() {
+            const searchTerm = document.getElementById('searchInput').value;
+
+            if (!searchTerm) {
+                alert('Por favor, ingrese un término de búsqueda.');
+                return;
+            }
+
+            fetch('/buscar-articulos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ searchTerm: searchTerm })
+            })
+            .then(response => response.json())
+            .then(result => {
+                const articulosGrid = document.getElementById('articulosGrid');
+                articulosGrid.innerHTML = ''; // Limpiar resultados anteriores
+
+                if (result.success) {
+                    // Mostrar los artículos encontrados
+                    result.articulos.forEach(articulo => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'item';
+                        itemDiv.setAttribute('data-codbar', articulo.codbar);
+                        itemDiv.setAttribute('data-denom', articulo.denom.toLowerCase());
+
+                        itemDiv.innerHTML = `
+                            <img class="product-image" src="/images/${articulo.codbar.replace(/\s+/g, '-')}.jpg" alt="${articulo.denom}" onerror="this.onerror=null; this.src='/images/logo.png';">
+                            <p>Codigo de barra: <strong>${articulo.codbar}</strong></p>
+                            <h2 class="product-name">${articulo.denom}</h2>
+                            <p class="precio">Precio: <span>$${articulo.precio.toFixed(2)}</span></p>
+                            <p>Stock Misiones: <strong>${articulo.stock}</strong></p>
+                            <p>Stock Corrientes: <strong>${articulo.stkcor}</strong></p>
+                            <input type="number" id="cantidad-${articulo.codbar}" class="quantity-input" placeholder="Cantidad" min="1">
+                            <div class="button-group">
+                                <button class="add-button" onclick="agregarAlCarrito('${articulo.codbar}', 'Misiones')">Agregar al carrito Misiones</button>
+                                <button class="add-button" onclick="agregarAlCarrito('${articulo.codbar}', 'Corrientes')">Agregar al carrito Corrientes</button>
+                                <button class="equivalence-button" onclick="verEquivalencias('${articulo.codbar}')">Ver Equivalencia</button>
+                            </div>
+                        `;
+
+                        articulosGrid.appendChild(itemDiv);
+                    });
+                } else {
+                    alert(result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error en la búsqueda de artículos.');
+            });
+        }
+
+        // Función para agregar un producto al carrito
+        function agregarAlCarrito(codbar, zona) {
+            const cantidad = document.getElementById(`cantidad-${codbar}`).value;
+            const zonaId = zona === 'Misiones' ? 1 : 2;
+
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida.');
+                return;
+            }
+
+            const data = {
+                codbar: codbar,
+                cantidad: cantidad,
+                zona: zonaId
+            };
+
+            fetch('/agregar-carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la red');
+                }
+                return response.json();
+            })
+            .then(result => {
+                alert(result.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al agregar al carrito.');
+            });
+        }
+        $(document).ready(function() {
+    // Manejar el clic en el botón "Ver Equivalencia"
+    $('.equivalence-button').click(async function() {
+        const codbar = $(this).data('codbar');
+
+        // Hacer la solicitud a la ruta para obtener equivalencias
+        const response = await fetch(`/equivalencias/${codbar}`);
+        const data = await response.json();
+
+        if (data.success) {
+            const equivalenciasHtml = data.equivalencias.map(eq => `
+                <p>Equivalencia 1: ${eq.equiv1}</p>
+                <p>Equivalencia 2: ${eq.equiv2}</p>
+                <p>Equivalencia 3: ${eq.equiv3}</p>
+                <p>Equivalencia 4: ${eq.equiv4}</p>
+                <p>Equivalencia 5: ${eq.equiv5}</p>
+            `).join('');
+
+            $('#equivalencias-items').html(equivalenciasHtml);
+            $('#equivalencias-modal').show(); // Mostrar el modal
+        } else {
+            alert(data.message);
+        }
+    });
+
+    // Cerrar el modal de equivalencias
+    $('.close-equivalencias').click(function() {
+        $('#equivalencias-modal').hide();
+    });
+
+    // Cerrar el modal si se hace clic fuera de él
+    $(window).click(function(event) {
+        if (event.target == document.getElementById('equivalencias-modal')) {
+            $('#equivalencias-modal').hide();
+        }
+    });
+});
+function verEquivalencias(codbar) {
+    fetch(`/equivalencias/${codbar}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const equivalenciasHtml = data.equivalencias.map(eq => `
+                    <p>Equivalencia 1: ${eq.equiv1}</p>
+                    <p>Equivalencia 2: ${eq.equiv2}</p>
+                    <p>Equivalencia 3: ${eq.equiv3}</p>
+                    <p>Equivalencia 4: ${eq.equiv4}</p>
+                    <p>Equivalencia 5: ${eq.equiv5}</p>
+                `).join('');
+
+                $('#equivalencias-items').html(equivalenciasHtml);
+                $('#equivalencias-modal').show(); // Mostrar el modal
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al obtener las equivalencias.');
+        });
+}
+
+
+    </script>
+    
+</body>
+</html>

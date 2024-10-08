@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="/css/inicio.css"> <!-- Archivo CSS separado -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Incluye jQuery -->
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <img src="/images/logo.png" alt="Logo">
+        </div>
+        <div class="welcome-message">
+            <p>Bienvenido, <%= razon %></p>
+            <span id="carrito-icon" class="carrito-icon" title="Ver carrito">🛒</span>
+            <!-- Botón de cerrar sesión -->
+            <button id="logout-button" class="btn">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1>¡Bienvenido a la pagina oficial de Autopartes Sol SRL!</h1>
+        <p>Aquí puedes acceder a la información relevante de tu cuenta.</p>
+
+        <!-- Botones para redirigir a otras páginas -->
+        <div class="buttons-container">
+            <a href="/cuentacorriente" class="btn">Comprobantes</a>
+            <a href="/precios" class="btn">Precios y Artículos</a>
+            <a href="/ofertas" class="btn">Nuestras Ofertas</a>
+        </div>
+    </main>
+
+    <!-- Modal para mostrar el carrito -->
+    <div id="carrito-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Carrito de Compras</h2>
+            <div id="carrito-items">
+                <!-- Los artículos del carrito se cargarán aquí -->
+            </div>
+            <button id="enviar-pedido">Enviar Pedido</button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Abrir el modal
+            $("#carrito-icon").click(function() {
+                $.get("/carrito", function(data) {
+                    let itemsHtml = '';
+                    let total = 0; // Variable para calcular el total
+    
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            itemsHtml += `
+                                <div class="carrito-item">
+                                    <img src="/images/logo.png" class="carrito-img">
+                                    <div class="carrito-details">
+                                        <p>${item.codbar}</p>
+                                        <p>${item.descripcion}</p>                                       
+                                        <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
+                                        <p>Precio: $${item.precio.toFixed(2)}</p>
+                                        <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p> <!-- Muestra el total del artículo -->
+                                        <p>Articulo para Zona: ${item.zona}</p> <!-- Aquí se muestra la zona -->
+                                        <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
+                                        <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button> <!-- Botón de eliminar -->
+                                       
+                                    </div>
+                                </div>`;
+                            total += item.precio * item.cantidad; // Sumar al total
+                        });
+                    } else {
+                        itemsHtml = '<p>No hay artículos en el carrito.</p>';
+                    }
+    
+                    $("#carrito-items").html(itemsHtml);
+                    $("#carrito-items").append(`<p class="total">Total: $${total.toFixed(2)}</p>`); // Mostrar total
+                    $("#carrito-modal").show();
+                });
+            });
+    
+            // Cerrar el modal
+            $(".close").click(function() {
+                $("#carrito-modal").hide();
+            });
+    
+            // Cerrar el modal si se hace clic fuera de él
+            $(window).click(function(event) {
+                if (event.target == document.getElementById('carrito-modal')) {
+                    $("#carrito-modal").hide();
+                }
+            });
+    
+            // Manejar el envío del pedido
+            $("#enviar-pedido").click(function() {
+                // Preguntar a qué sucursal desea enviar el pedido
+                const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+
+                if (sucursal === null) {
+                    return; // Si el usuario cancela, no se envía el pedido
+                }
+
+                // Definir zona en base a la sucursal seleccionada
+                let zona;
+                if (sucursal.toLowerCase() === '1') {
+                    zona = 1; // Zona 1 es Misiones
+                } else if (sucursal.toLowerCase() === '2') {
+                    zona = 2; // Zona 2 es Corrientes
+                } else {
+                    alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
+                    return;
+                }
+
+                // Pedir transporte y observación
+                const transporte = prompt("Por favor, escribe el transporte:");
+                const obs = prompt("Por favor, escribe una observación (opcional):");
+
+                // Realizar la solicitud POST con la zona seleccionada
+                $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
+                    .done(function(response) {
+                        alert(response.message);
+                        $("#carrito-modal").hide(); // Cerrar el modal del carrito
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al enviar el pedido.");
+                    });
+            });
+
+
+    
+            // Actualizar la cantidad
+            $(document).on('click', '.actualizar-btn', function() {
+                const codbar = $(this).data('codbar');
+                const nuevaCantidad = $(this).siblings('.cantidad-input').val();
+    
+                $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
+                    .done(function(response) {
+                        alert("Cantidad actualizada con éxito.");
+                        // Recalcular y actualizar el total
+                        actualizarTotal();
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al actualizar la cantidad.");
+                    });
+            });
+    
+            // Eliminar artículo del carrito
+            $(document).on('click', '.eliminar-btn', function() {
+                const codbar = $(this).data('codbar');
+    
+                $.post("/eliminar-articulo", { codbar: codbar })
+                    .done(function(response) {
+                        alert("Artículo eliminado con éxito.");
+                        // Volver a cargar los artículos del carrito
+                        $("#carrito-icon").click();
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al eliminar el artículo.");
+                    });
+            });
+    
+            // Función para recalcular el total del carrito
+            function actualizarTotal() {
+                let total = 0;
+    
+                $(".carrito-item").each(function() {
+                    const cantidad = $(this).find('.cantidad-input').val();
+                    const precio = parseFloat($(this).find('p').eq(1).text().replace("Precio: $", ""));
+                    const itemTotal = precio * cantidad; // Calcula el total por artículo
+                    $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`); // Actualiza el total del artículo
+                    total += itemTotal; // Sumar al total general
+                });
+    
+                $(".total").text(`Total: $${total.toFixed(2)}`); // Actualiza el total del carrito
+            }
+        });
+        $(document).ready(function() {
+        // Cerrar sesión
+        $("#logout-button").click(function() {
+            $.post("/cerrar-sesion") // Cambia esta URL si tu ruta es diferente
+                .done(function(response) {
+                    alert(response.message);
+                    // Redirigir al usuario a la página de inicio de sesión
+                    window.location.href = "/"; // Cambia esto si tu ruta de inicio de sesión es diferente
+                })
+                .fail(function() {
+                    alert("Hubo un problema al cerrar sesión.");
+                });
+        });
+    });
+    </script>
+    
+    
+</body>
+</html>

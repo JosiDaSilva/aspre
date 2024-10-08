@@ -1,0 +1,250 @@
+/* Estilos generales */
+body {
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilos del encabezado */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a06d3;
+    padding: 10px 20px;
+}
+
+.main-header .logo img {
+    width: 120px;
+}
+
+.main-header .welcome-message {
+    color: #fff;
+    font-size: 18px;
+    text-align: right;
+}
+
+/* Estilos del contenido principal */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+/* Animación de giro y movimiento */
+@keyframes carrito-animacion {
+    0% {
+        transform: rotate(0deg) translateY(0);
+    }
+    50% {
+        transform: rotate(10deg) translateY(-5px); /* Movimiento hacia arriba */
+    }
+    100% {
+        transform: rotate(0deg) translateY(0);
+    }
+}
+
+/* Estilo para el icono del carrito */
+#carrito-icon {
+    font-size: 40px; /* Aumenta el tamaño del icono */
+    cursor: pointer; /* Cambia el cursor a puntero al pasar el mouse */
+    transition: transform 0.2s; /* Añade una transición suave */
+    animation: carrito-animacion 10s infinite; /* Aplicar la animación en bucle */
+}
+
+/* Efecto de hover */
+#carrito-icon:hover {
+    transform: scale(1.2); /* Aumenta el tamaño al pasar el mouse */
+}
+
+.main-content h1 {
+    color: #333;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.main-content p {
+    color: #666;
+    font-size: 18px;
+    max-width: 600px;
+}
+
+/* Botones */
+.buttons-container {
+    margin-top: 30px;
+}
+
+.buttons-container .btn {
+    display: inline-block;
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 18px;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.buttons-container .btn:hover {
+    background-color: #0056b3;
+}
+
+.buttons-container .btn:active {
+    background-color: #003d82;
+}
+
+/* Diseño del carrito */
+.carrito-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+}
+
+.carrito-img {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.carrito-details {
+    flex-grow: 1; /* Permitir que el detalle del producto ocupe el espacio disponible */
+}
+
+.total {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Estilos del modal */
+.modal {
+    display: none; /* Ocultado por defecto */
+    position: fixed; /* Queda fijo */
+    z-index: 1; /* Se coloca arriba */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Altura completa */
+    overflow: auto; /* Habilitar desplazamiento si es necesario */
+    background-color: rgb(0,0,0); /* Color de fondo */
+    background-color: rgba(0,0,0,0.4); /* Fondo negro con transparencia */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Diseño responsive */
+@media (max-width: 768px) {
+    .main-content h1 {
+        font-size: 28px;
+    }
+
+    .main-content p {
+        font-size: 16px;
+    }
+
+    .main-header .welcome-message {
+        font-size: 16px;
+    }
+
+    .buttons-container .btn {
+        font-size: 16px;
+        padding: 12px 25px;
+    }
+
+    .carrito-item {
+        flex-direction: column; /* Disponer los elementos en columna en móviles */
+        align-items: flex-start;
+    }
+
+    .carrito-img {
+        margin-bottom: 10px; /* Separar la imagen del texto */
+    }
+}
+.modal-footer {
+    display: flex; /* Para alinear el contenido en una fila */
+    justify-content: flex-end; /* Alinear el botón a la derecha */
+    padding: 15px; /* Espaciado interno para el footer del modal */
+    background-color: #f1f1f1; /* Color de fondo del footer */
+    border-top: 1px solid #e0e0e0; /* Línea separadora */
+}
+
+#enviar-pedido {
+    background-color: #28a745; /* Color de fondo verde */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    padding: 10px 20px; /* Espaciado interno del botón */
+    cursor: pointer; /* Cambia el cursor a mano */
+    transition: background-color 0.3s ease; /* Transición suave al pasar el ratón */
+}
+
+#enviar-pedido:hover {
+    background-color: #218838; /* Color más oscuro al pasar el ratón */
+}
+
+#enviar-pedido:focus {
+    outline: none; /* Sin contorno al hacer clic */
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); /* Sombra al enfocar */
+}
+/* Estilos para el botón de cerrar sesión */
+.btn {
+    background-color: #d9534f; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 4px; /* Bordes redondeados */
+    padding: 10px 20px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    cursor: pointer; /* Cambia el cursor al pasar el mouse */
+    transition: background-color 0.3s, transform 0.3s; /* Efecto de transición */
+    text-decoration: none; /* Sin subrayado */
+    margin-left: 15px; /* Espaciado a la izquierda para separar del icono del carrito */
+}
+
+/* Efecto de hover */
+.btn:hover {
+    background-color: #c9302c; /* Color más oscuro al pasar el mouse */
+    transform: translateY(-2px); /* Eleva el botón ligeramente */
+}
+
+/* Efecto de focus para accesibilidad */
+.btn:focus {
+    outline: none; /* Elimina el borde de enfoque */
+    box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.5); /* Agrega sombra de enfoque */
+}
+
+/* Estilo para deshabilitar el botón */
+.btn:disabled {
+    background-color: #e6e6e6; /* Color de fondo para el estado deshabilitado */
+    color: #a1a1a1; /* Color de texto para el estado deshabilitado */
+    cursor: not-allowed; /* Cambia el cursor al pasar el mouse */
+}

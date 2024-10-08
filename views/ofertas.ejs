@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestras Ofertas</title>
+    <link rel="stylesheet" href="/css/ofertas.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <a href="/inicio"> <!-- Enlace que redirige a la página inicio.ejs -->
+                    <img src="/images/logo.png" alt="Logo de la Empresa" class="logo">
+                </a>
+            </div>
+            <h1>Ofertas Especiales</h1>
+            <p>¡Aprovecha nuestras mejores ofertas y ahorra en tus compras!</p>
+            <p class="validez">Válido desde 01-10-2024 al 31-10-2024 o hasta agotar stock. Precios sujetos a cambios.</p>
+        </header>
+
+        <!-- Cuadro de búsqueda -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar por código o nombre..." oninput="filterArticulos()">
+        </div>
+
+        <div class="grid" id="articulosGrid">
+            <% articulos.forEach(function(articulo) { %>
+                <div class="offer-item" data-codbar="<%= articulo.codbar %>" data-denom="<%= articulo.denom.toLowerCase() %>">
+                    <!-- Imagen del producto -->
+                    <img class="product-image" src="/images/<%= articulo.codbar.replace(/\s+/g, '-') %>.jpg" alt="<%= articulo.denom %>">
+                    
+                    <!-- Nombre del producto -->
+                    <h2 class="product-name"><%= articulo.denom %></h2>
+                    
+                    <!-- Precio original -->
+                    <p class="precio-original">Precio original: <span>$<%= articulo.precio.toFixed(2) %></span></p>
+
+                    <!-- Precio con oferta -->
+                    <p class="precio-oferta" data-precio="<%= articulo.precio %>" data-porofe="<%= articulo.porofe %>"></p>
+
+                    <!-- Stock disponible en distintas sucursales -->
+                    <p>Stock Misiones: <strong><%= articulo.stock %></strong></p>
+                    <p>Stock Corrientes: <strong><%= articulo.stkcor %></strong></p>
+                    <p>Codigo de barra: <strong><%= articulo.codbar %></strong></p>
+                    
+                    <!-- Campo para ingresar la cantidad -->
+                    <input type="number" id="cantidad-<%= articulo.codbar %>" class="quantity-input" placeholder="Cantidad" min="1">
+
+                    <!-- Botones para agregar al carrito -->
+                    <div class="button-group">
+                        <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Misiones')">Agregar al carrito Misiones</button>
+                        <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Corrientes')">Agregar al carrito Corrientes</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <script>
+        // Función para agregar un producto al carrito
+        function agregarAlCarrito(codbar, zona) {
+            // Obtener la cantidad ingresada por el usuario
+            const cantidad = document.getElementById(`cantidad-${codbar}`).value;
+            const zonaId = zona === 'Misiones' ? 1 : 2;
+
+            // Validar que la cantidad sea mayor a 0
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida.');
+                return;
+            }
+
+            // Preparar los datos para enviar al servidor
+            const data = {
+                codbar: codbar,
+                cantidad: cantidad,
+                zona: zonaId
+            };
+
+            fetch('/agregar-carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la red');
+                }
+                return response.json();
+            })
+            .then(result => {
+                alert(result.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al agregar al carrito.');
+            });
+        }
+
+        // Función para filtrar los productos
+        function filterArticulos() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const articulosGrid = document.getElementById('articulosGrid');
+            const offerItems = articulosGrid.getElementsByClassName('offer-item');
+
+            Array.from(offerItems).forEach(item => {
+                const codbar = item.getAttribute('data-codbar').toLowerCase();
+                const denom = item.getAttribute('data-denom');
+
+                // Verificar si el código de barras o el nombre contienen el texto de búsqueda
+                if (codbar.includes(input) || denom.includes(input)) {
+                    item.style.display = ''; // Mostrar el artículo
+                } else {
+                    item.style.display = 'none'; // Ocultar el artículo
+                }
+            });
+        }
+
+        // Cálculo del precio de la oferta en función del porcentaje de descuento
+        document.addEventListener('DOMContentLoaded', function() {
+            const precioOfertaElements = document.querySelectorAll('.precio-oferta');
+            precioOfertaElements.forEach(function(element) {
+                const precio = parseFloat(element.getAttribute('data-precio'));
+                const porofe = parseFloat(element.getAttribute('data-porofe'));
+                const descuento = (precio * Math.abs(porofe) / 100);
+                const precioOferta = (precio - descuento).toFixed(2);
+                element.textContent = `Oferta: $${precioOferta}`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+/* Estilo general del body */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #2215d6;
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenedor principal */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+/* Estilo del header */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+/* Estilo para el contenedor de búsqueda */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+/* Estilo del input de búsqueda */
+#searchInput {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    border: 2px solid #555;
+    border-radius: 5px;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease;
+}
+
+/* Efecto de enfoque en el input de búsqueda */
+#searchInput:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Estilo del placeholder del input de búsqueda */
+#searchInput::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+/* Estilo de la cuadrícula para los artículos */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Estilo para cada artículo */
+.item {
+    background-color: #f9f9f9;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.2s;
+    position: relative;
+}
+
+/* Efecto hover para los artículos */
+.item:hover {
+    transform: scale(1.05);
+}
+
+/* Estilo de las imágenes del producto */
+.product-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    width: 100px; /* Ancho fijo de la imagen */
+    height: 100px; /* Alto fijo de la imagen */
+}
+
+/* Estilo de los nombres de los productos */
+.product-name {
+    font-size: 1.5rem;
+    color: #007BFF;
+}
+
+/* Estilo para los precios */
+.precio {
+    font-size: 1.2rem;
+}
+
+/* Estilo para la entrada de cantidad */
+.quantity-input {
+    width: 50%;
+    max-width: 100px;
+    padding: 8px;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    transition: border-color 0.3s;
+}
+
+/* Estilo para el grupo de botones */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+/* Estilo de los botones */
+.add-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 0 5px;
+}
+
+.add-button:hover {
+    background-color: #218838;
+}
+
+/* Estilo para mensajes de alerta */
+.alert {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Estilo del logo */
+.logo-container {
+    margin-bottom: 15px;
+}
+
+.logo {
+    max-width: 150px;
+}
+
+/* Estilos para el stock */
+.stock-info {
+    font-size: 0.9rem;
+    color: #555; /* Color gris */
+}
+
+/**/
+.carrito-icon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.modal {
+    display:none; /* Oculto por defecto */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.show {
+    display: block; /* Mostrar cuando se active */
+}
+/* Estilos del contenido principal */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+.main-content h1 {
+    color: #333;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.main-content p {
+    color: #666;
+    font-size: 18px;
+    max-width: 600px;
+}
+
+/* Botones */
+.buttons-container {
+    margin-top: 30px;
+}
+
+.buttons-container .btn {
+    display: inline-block;
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 18px;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.buttons-container .btn:hover {
+    background-color: #0056b3;
+}
+
+.buttons-container .btn:active {
+    background-color: #003d82;
+}
+
+/* Diseño del carrito */
+.carrito-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 0;
+}
+
+.carrito-img {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.carrito-details {
+    flex-grow: 1; /* Permitir que el detalle del producto ocupe el espacio disponible */
+}
+
+.total {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Estilos del modal */
+.modal {
+    display: none; /* Ocultado por defecto */
+    position: fixed; /* Queda fijo */
+    z-index: 1; /* Se coloca arriba */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Altura completa */
+    overflow: auto; /* Habilitar desplazamiento si es necesario */
+    background-color: rgb(0,0,0); /* Color de fondo */
+    background-color: rgba(0,0,0,0.4); /* Fondo negro con transparencia */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Diseño responsive */
+@media (max-width: 768px) {
+    .main-content h1 {
+        font-size: 28px;
+    }
+
+    .main-content p {
+        font-size: 16px;
+    }
+
+    .main-header .welcome-message {
+        font-size: 16px;
+    }
+
+    .buttons-container .btn {
+        font-size: 16px;
+        padding: 12px 25px;
+    }
+
+    .carrito-item {
+        flex-direction: column; /* Disponer los elementos en columna en móviles */
+        align-items: flex-start;
+    }
+
+    .carrito-img {
+        margin-bottom: 10px; /* Separar la imagen del texto */
+    }
+}
+.modal-footer {
+    display: flex; /* Para alinear el contenido en una fila */
+    justify-content: flex-end; /* Alinear el botón a la derecha */
+    padding: 15px; /* Espaciado interno para el footer del modal */
+    background-color: #f1f1f1; /* Color de fondo del footer */
+    border-top: 1px solid #e0e0e0; /* Línea separadora */
+}
+
+#enviar-pedido {
+    background-color: #28a745; /* Color de fondo verde */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    padding: 10px 20px; /* Espaciado interno del botón */
+    cursor: pointer; /* Cambia el cursor a mano */
+    transition: background-color 0.3s ease; /* Transición suave al pasar el ratón */
+}
+
+#enviar-pedido:hover {
+    background-color: #218838; /* Color más oscuro al pasar el ratón */
+}
+
+#enviar-pedido:focus {
+    outline: none; /* Sin contorno al hacer clic */
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); /* Sombra al enfocar */
+}
+/* Botón de cerrar */
+.close-equivalencias {
+    color: #aaa; /* Color del texto */
+    float: right; /* Alinear a la derecha */
+    font-size: 28px; /* Tamaño de fuente */
+    font-weight: bold; /* Negrita */
+    cursor: pointer; /* Cambiar el cursor al pasar por encima */
+}
+
+/* Cambiar color al pasar el mouse */
+.close-equivalencias:hover,
+.close-equivalencias:focus {
+    color: black; /* Cambiar a negro al pasar el mouse */
+    text-decoration: none; /* Sin subrayado */
+    cursor: pointer; /* Cambiar cursor al pasar el mouse */
+}
+
+/* Estilo para los items dentro del modal */
+#equivalencias-items p {
+    margin: 10px 0; /* Margen vertical entre párrafos */
+    line-height: 1.5; /* Espaciado entre líneas */
+}
