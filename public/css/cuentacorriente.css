@@ -1,3 +1,4 @@
+/* Estilos generales */
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -11,44 +12,57 @@ body {
     display: flex;
     align-items: center;
     padding: 10px 20px;
+    flex-wrap: wrap; /* Permite que los elementos se ajusten en líneas en pantallas pequeñas */
 }
 
 .logo {
     flex: 0 0 auto; /* No crecer ni encoger */
     margin-right: 20px;
-}
-
-.logo {
-    height: 100px; /* Ajusta la altura del logo */
+    height: 80px; /* Ajusta la altura del logo para pantallas más pequeñas */
 }
 
 .welcome-message {
-    flex: 1; /* Permite que el mensaje ocupe el espacio restante */
+    flex: 1;
     text-align: right;
     font-size: 1.2em;
+    margin-top: 10px;
 }
 
+/* Estilo principal */
 .main-content {
     padding: 20px;
+    margin: 0 auto;
+    max-width: 1200px; /* Limita el ancho máximo */
+    box-sizing: border-box;
 }
 
 h1 {
     font-size: 2em;
     color: #333;
+    text-align: center; /* Centrar el título en pantallas pequeñas */
 }
 
+/* Estilos para la tabla */
 .movements-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-x: auto; /* Permitir scroll horizontal en pantallas pequeñas */
+    display: block; /* Hace que la tabla sea adaptable */
+}
+
+.movements-table thead, .movements-table tbody {
+    display: table;
+    width: 100%;
 }
 
 .movements-table th, .movements-table td {
     padding: 10px;
     border-bottom: 1px solid #ddd;
     text-align: center;
+    font-size: 0.9em;
 }
 
 .movements-table th {
@@ -57,13 +71,14 @@ h1 {
 }
 
 .movements-table tbody tr:hover {
-    background-color: #f1f1f1; /* Color de fondo al pasar el ratón */
+    background-color: #f1f1f1;
 }
 
+/* Paginación */
 .pagination {
     margin-top: 20px;
     display: flex;
-    justify-content: center; /* Centra la paginación */
+    justify-content: center;
 }
 
 .pagination-button {
@@ -78,10 +93,59 @@ h1 {
 }
 
 .pagination-button:hover {
-    background-color: #0056b3; /* Color de fondo al pasar el ratón */
+    background-color: #0056b3;
 }
 
 .pagination-button:disabled {
-    background-color: #ccc; /* Botón deshabilitado */
-    cursor: not-allowed; /* Cambia el cursor cuando está deshabilitado */
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Media Queries para pantallas pequeñas */
+@media (max-width: 768px) {
+    .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .logo {
+        height: 60px;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .welcome-message {
+        text-align: left;
+        font-size: 1em;
+        margin-top: 0;
+    }
+
+    .movements-table {
+        font-size: 0.8em;
+    }
+
+    .pagination-button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .movements-table th, .movements-table td {
+        padding: 8px;
+        font-size: 0.8em;
+    }
+
+    .pagination-button {
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
 }

@@ -11,7 +11,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #1a06d3;
+    background-color: #050505;
     padding: 10px 20px;
 }
 
@@ -20,7 +20,7 @@ body {
 }
 
 .main-header .welcome-message {
-    color: #fff;
+    color: #e05d06;
     font-size: 18px;
     text-align: right;
 }
@@ -55,6 +55,12 @@ body {
     animation: carrito-animacion 10s infinite; /* Aplicar la animación en bucle */
 }
 
+#calculator-icon {
+    font-size: 40px; /* Aumenta el tamaño del icono */
+    cursor: pointer; /* Cambia el cursor a puntero al pasar el mouse */
+    transition: transform 0.2s; /* Añade una transición suave */
+    animation: carrito-animacion 10s infinite; /* Aplicar la animación en bucle */
+}
 /* Efecto de hover */
 #carrito-icon:hover {
     transform: scale(1.2); /* Aumenta el tamaño al pasar el mouse */
@@ -83,7 +89,7 @@ body {
     margin: 10px;
     font-size: 18px;
     color: white;
-    background-color: #007BFF;
+    background-color: #050505;
     border: none;
     border-radius: 5px;
     text-decoration: none;
@@ -91,11 +97,11 @@ body {
 }
 
 .buttons-container .btn:hover {
-    background-color: #0056b3;
+    background-color: #f07c04;
 }
 
 .buttons-container .btn:active {
-    background-color: #003d82;
+    background-color: #f07c04;
 }
 
 /* Diseño del carrito */
@@ -247,4 +253,99 @@ body {
     background-color: #e6e6e6; /* Color de fondo para el estado deshabilitado */
     color: #a1a1a1; /* Color de texto para el estado deshabilitado */
     cursor: not-allowed; /* Cambia el cursor al pasar el mouse */
+}
+/* Estilos generales del modal */
+.modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Mantener en pantalla */
+    z-index: 1000; /* Por encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Permitir desplazamiento */
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro */
+    transition: opacity 0.3s ease; /* Efecto de transición */
+}
+
+/* Contenido del modal */
+.modal-content {
+    background-color: #fff; /* Fondo blanco */
+    margin: 5% auto; /* 5% desde la parte superior */
+    padding: 30px; /* Espaciado interno */
+    border: 1px solid #888; /* Borde gris claro */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+    width: 90%; /* Ancho del modal */
+    max-width: 500px; /* Ancho máximo */
+}
+
+/* Estilo del encabezado del modal */
+.modal-content h2 {
+    margin: 0 0 20px; /* Margen inferior */
+    font-size: 24px; /* Tamaño de fuente */
+    color: #333; /* Color del texto */
+    font-weight: 600; /* Negrita */
+}
+
+/* Botón de cierre del modal */
+.close-calculator {
+    color: #aaa; /* Color del botón de cierre */
+    float: right; /* Alinear a la derecha */
+    font-size: 28px; /* Tamaño del texto */
+    font-weight: bold; /* Negrita */
+    cursor: pointer; /* Cursor de puntero */
+}
+
+.close-calculator:hover,
+.close-calculator:focus {
+    color: #333; /* Color al pasar el mouse */
+    text-decoration: none; /* Sin subrayado */
+}
+
+/* Estilo del formulario de utilidad y descuento */
+#utilidad-form {
+    display: flex;
+    flex-direction: column; /* Colocar elementos en columna */
+}
+
+/* Estilo de las etiquetas y campos de entrada del formulario */
+label {
+    margin: 15px 0 5px; /* Margen superior e inferior */
+    font-weight: 500; /* Peso de fuente */
+    color: #555; /* Color del texto */
+}
+
+input[type="text"] {
+    padding: 12px; /* Espaciado interno */
+    border: 1px solid #ccc; /* Borde gris claro */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 16px; /* Tamaño de fuente */
+    transition: border-color 0.3s ease; /* Efecto de transición */
+}
+
+input[type="text"]:focus {
+    border-color: #4CAF50; /* Color del borde al enfocar */
+    outline: none; /* Sin contorno */
+}
+
+/* Estilo del botón de guardar */
+.btn {
+    background-color: #4CAF50; /* Verde */
+    color: white; /* Color del texto */
+    padding: 10px 20px; /* Espaciado interno */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 16px; /* Tamaño de fuente */
+    cursor: pointer; /* Cursor de puntero */
+    transition: background-color 0.3s ease; /* Efecto de transición */
+}
+
+.btn:hover {
+    background-color: #45a049; /* Verde más oscuro */
+}
+
+/* Espaciado adicional entre elementos del formulario */
+#utilidad-form > * {
+    margin-bottom: 15px; /* Margen inferior */
 }

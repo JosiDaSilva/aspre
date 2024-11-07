@@ -64,3 +64,50 @@ body {
 .login-btn:hover {
     background-color: #218838;
 }
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.close-btn {
+    align-self: flex-end;
+    margin-right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+}
+
+.sidebar .btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 30px;
+    color: white;
+    background-color: #050505;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar .btn:hover {
+    background-color: #f07c04;
+}

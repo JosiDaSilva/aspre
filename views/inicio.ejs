@@ -15,20 +15,35 @@
         <div class="welcome-message">
             <p>Bienvenido, <%= razon %></p>
             <span id="carrito-icon" class="carrito-icon" title="Ver carrito">🛒</span>
+            <span id="calculator-icon" class="calculator-icon" title="Calcular utilidad y descuento">🧮</span> <!-- Icono de calculadora -->
             <!-- Botón de cerrar sesión -->
             <button id="logout-button" class="btn">Cerrar sesión</button>
         </div>
     </header>
 
     <main class="main-content">
-        <h1>¡Bienvenido a la pagina oficial de Autopartes Sol SRL!</h1>
+        <h1>¡Bienvenido al Catálogo online oficial de Autopartes Sol SRL!</h1>
         <p>Aquí puedes acceder a la información relevante de tu cuenta.</p>
 
         <!-- Botones para redirigir a otras páginas -->
-        <div class="buttons-container">
-            <a href="/cuentacorriente" class="btn">Comprobantes</a>
-            <a href="/precios" class="btn">Precios y Artículos</a>
-            <a href="/ofertas" class="btn">Nuestras Ofertas</a>
+        <div class="buttons-container" style="display: flex; gap: 20px;">
+        <a href="/cuentacorriente" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
+        <img src="/images/comprobado.png" alt="Comprobantes" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
+        <span>Comprobantes</span>
+    </a>
+    <a href="/precios" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
+        <img src="/images/precio.png" alt="precios" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
+        <span>Precios y Artículos</span>
+    </a>
+    <a href="/ofertas" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
+        <img src="/images/oferta.png" alt="oferta" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
+        <span>Nuestras Ofertas</span>
+    </a>
+            <a href="/estado" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
+        <img src="/images/rastreo.png" alt="seguimiento" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
+        <span>Seguimiento de Pedido</span>
+    </a>
+            
         </div>
     </main>
 
@@ -44,9 +59,25 @@
         </div>
     </div>
 
+    <!-- Modal para calcular utilidad y descuento -->
+    <div id="calculator-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-calculator">&times;</span>
+            <h2>Ingrese los datos</h2>
+            <form id="utilidad-form">
+                <label for="util">Utilidad:</label>
+                <input type="text" id="util" name="util" placeholder="Utilidad" required>
+                
+                <label for="dtofab">Descuento:</label>
+                <input type="text" id="dtofab" name="dtofab" placeholder="Descuento" readonly required>
+                <button type="submit">Guardar</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         $(document).ready(function() {
-            // Abrir el modal
+            // Abrir el modal del carrito
             $("#carrito-icon").click(function() {
                 $.get("/carrito", function(data) {
                     let itemsHtml = '';
@@ -66,7 +97,6 @@
                                         <p>Articulo para Zona: ${item.zona}</p> <!-- Aquí se muestra la zona -->
                                         <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
                                         <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button> <!-- Botón de eliminar -->
-                                       
                                     </div>
                                 </div>`;
                             total += item.precio * item.cantidad; // Sumar al total
@@ -80,8 +110,8 @@
                     $("#carrito-modal").show();
                 });
             });
-    
-            // Cerrar el modal
+
+            // Cerrar el modal del carrito
             $(".close").click(function() {
                 $("#carrito-modal").hide();
             });
@@ -95,14 +125,12 @@
     
             // Manejar el envío del pedido
             $("#enviar-pedido").click(function() {
-                // Preguntar a qué sucursal desea enviar el pedido
                 const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
 
                 if (sucursal === null) {
                     return; // Si el usuario cancela, no se envía el pedido
                 }
 
-                // Definir zona en base a la sucursal seleccionada
                 let zona;
                 if (sucursal.toLowerCase() === '1') {
                     zona = 1; // Zona 1 es Misiones
@@ -113,11 +141,9 @@
                     return;
                 }
 
-                // Pedir transporte y observación
                 const transporte = prompt("Por favor, escribe el transporte:");
                 const obs = prompt("Por favor, escribe una observación (opcional):");
 
-                // Realizar la solicitud POST con la zona seleccionada
                 $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
                     .done(function(response) {
                         alert(response.message);
@@ -128,8 +154,6 @@
                     });
             });
 
-
-    
             // Actualizar la cantidad
             $(document).on('click', '.actualizar-btn', function() {
                 const codbar = $(this).data('codbar');
@@ -138,7 +162,6 @@
                 $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
                     .done(function(response) {
                         alert("Cantidad actualizada con éxito.");
-                        // Recalcular y actualizar el total
                         actualizarTotal();
                     })
                     .fail(function() {
@@ -153,7 +176,6 @@
                 $.post("/eliminar-articulo", { codbar: codbar })
                     .done(function(response) {
                         alert("Artículo eliminado con éxito.");
-                        // Volver a cargar los artículos del carrito
                         $("#carrito-icon").click();
                     })
                     .fail(function() {
@@ -175,23 +197,57 @@
     
                 $(".total").text(`Total: $${total.toFixed(2)}`); // Actualiza el total del carrito
             }
-        });
-        $(document).ready(function() {
-        // Cerrar sesión
-        $("#logout-button").click(function() {
-            $.post("/cerrar-sesion") // Cambia esta URL si tu ruta es diferente
-                .done(function(response) {
-                    alert(response.message);
-                    // Redirigir al usuario a la página de inicio de sesión
-                    window.location.href = "/"; // Cambia esto si tu ruta de inicio de sesión es diferente
-                })
-                .fail(function() {
-                    alert("Hubo un problema al cerrar sesión.");
+
+            // Abrir el modal de la calculadora
+            // Abrir el modal de la calculadora
+            $("#calculator-icon").click(function() {
+                // Obtener los valores de util y dtofab desde el servidor
+                $.get("/obtener-valores", function(data) {
+                    $("#util").val(data.util); // Asigna el valor de utilidad al input correcto
+                    $("#dtofab").val(data.dtofab); // Asigna el valor de descuento al input correcto
+                    $("#calculator-modal").show(); // Mostrar el modal
+                }).fail(function() {
+                    alert("Error al obtener los valores.");
                 });
+            });
+
+
+            // Cerrar el modal de la calculadora
+            $(".close-calculator").click(function() {
+                $("#calculator-modal").hide();
+            });
+
+            // Cerrar el modal si se hace clic fuera de él
+            $(window).click(function(event) {
+                if (event.target == document.getElementById('calculator-modal')) {
+                    $("#calculator-modal").hide();
+                }
+            });
+
+            // Manejar el envío del formulario de la calculadora
+            $("#utilidad-form").submit(function(event) {
+                event.preventDefault(); // Evitar el envío normal del formulario
+                const utilidad = $("#util").val(); // Cambiar a 'util'
+                const descuento = $("#dtofab").val(); // Cambiar a 'dtofab'
+
+                $.post("/guardar-valores", { util: utilidad, dtofab: descuento }) // Cambiar nombres aquí
+                    .done(function(response) {
+                        alert("Valores guardados con éxito.");
+                        $("#calculator-modal").hide(); // Cerrar el modal de la calculadora
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al guardar los valores.");
+                    });
+            });
+
+            // Cerrar sesión
+            $("#logout-button").click(function() {
+                $.post("/logout", function(response) {
+                    alert(response.message);
+                    window.location.href = "/"; // Redirigir a la página de inicio
+                });
+            });
         });
-    });
     </script>
-    
-    
 </body>
 </html>

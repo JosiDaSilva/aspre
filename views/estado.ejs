@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Pedido</title>
+    <link rel="stylesheet" href="/css/estado.css"> <!-- Asegúrate de servir este archivo CSS -->
+</head>
+<body>
+
+<h1>Seguimiento de Pedido</h1>
+
+<!-- Tabla de pedidos -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Código Cliente</th>
+                <th>Transporte</th>
+                <th>Fecha</th>
+                <th>Número de Pedido</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% pedidos.forEach(pedido => { %>
+                <tr>
+                    <td><%= pedido.codcli %></td>
+                    <td><%= pedido.transporte %></td>
+                    <td><%= new Date(pedido.fecha).toDateString() %></td>
+                    <td><%= pedido.numero %></td>
+                    <td><button class="btn" onclick="verPedido('<%= pedido.numero %>')">Ver Pedido</button></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para mostrar detalles del pedido -->
+<div id="pedidoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal()">&times;</span>
+        <h2>Detalles del Pedido</h2>
+        <div id="estadoPedido"></div> <!-- Aquí se mostrará el estado general del pedido -->
+        <div id="detallesPedido"></div> <!-- Aquí se cargarán los detalles del pedido -->
+    </div>
+</div>
+
+<!-- JavaScript para manejo del modal y carga de detalles -->
+<script>
+    function verPedido(numeroPedido) {
+        // Hacer petición AJAX para obtener detalles del pedido
+        fetch(`/pedido-detalle/${numeroPedido}`)
+            .then(response => response.json())
+            .then(data => {
+                const detallesDiv = document.getElementById('detallesPedido');
+                const estadoDiv = document.getElementById('estadoPedido');
+                detallesDiv.innerHTML = '';
+                estadoDiv.innerHTML = '';
+
+                // Mostrar el estado solo una vez
+                let statusLabel = '';
+                const estadoSit = data[0]?.sit; // Usar el primer registro para obtener el estado general del pedido
+
+                if (estadoSit === 'P') {
+                    statusLabel = '<p class="status-label status-preparado">Este pedido está siendo preparado</p>';
+                } else if (estadoSit === 'F') {
+                    statusLabel = '<p class="status-label status-facturado">Este pedido ya ha sido facturado</p>';
+                } else if (estadoSit === 'D') {
+                    statusLabel = '<p class="status-label status-despachado">Este pedido ha sido despachado</p>';
+                }
+
+                // Mostrar estado solo una vez
+                estadoDiv.innerHTML = statusLabel;
+
+                // Cargar los detalles del pedido
+                data.forEach(item => {
+                    detallesDiv.innerHTML += `
+                        <div>
+                            <p><strong>Código Origen:</strong> ${item.codori}</p>
+                            <p><strong>Cantidad:</strong> ${item.cantidad}</p>
+                            <p><strong>Descripción:</strong> ${item.descri}</p>
+                        </div>
+                        <hr>
+                    `;
+                });
+
+                // Mostrar el modal
+                document.getElementById('pedidoModal').style.display = 'block';
+            });
+    }
+
+    function cerrarModal() {
+        document.getElementById('pedidoModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

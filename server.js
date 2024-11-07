@@ -63,6 +63,43 @@ app.post('/login', async (req, res) => {
         res.send('Ocurrió un error.');
     }
 });
+// Ruta para obtener los valores de util y dtofab
+app.get('/obtener-valores', async (req, res) => {
+    const userId = req.session.codcli;
+    try {
+        const [rows] = await connection.query('SELECT util, dtofab FROM aus_cli  WHERE id = ?', [userId]); 
+        if (rows.length > 0) {
+            res.json(rows[0]); // Devuelve el primer registro encontrado
+        } else {
+            res.status(404).json({ message: 'Valores no encontrados.' });
+        }
+    } catch (err) {
+        console.error('Error al obtener los valores:', err);
+        res.status(500).json({ message: 'Error del servidor.', error: err.message }); // Proporciona más información sobre el error
+    }
+});
+
+// Ruta para guardar los valores de util y dtofab
+app.post('/guardar-valores', async (req, res) => {
+    const { util, dtofab } = req.body;
+    const userId = req.session.codcli; // Obtén el ID del usuario logueado desde la sesión
+
+    try {
+        // Actualiza los valores de util y dtofab para el ID del usuario logueado
+        const [result] = await connection.query('UPDATE aus_cli SET util = ?, dtofab = ? WHERE id = ?', [util, dtofab, userId]);
+        
+        // Verificar si se actualizó alguna fila
+        if (result.affectedRows > 0) {
+            res.json({ message: 'Valores actualizados correctamente.' });
+        } else {
+            res.status(404).json({ message: 'No se encontraron filas para actualizar.' });
+        }
+    } catch (err) {
+        console.error('Error al guardar los valores:', err);
+        res.status(500).json({ message: 'Error del servidor.', error: err.message }); // Proporciona más información sobre el error
+    }
+});
+
 
 app.get('/cuentacorriente', async (req, res) => {
     const codcli = req.session.codcli; // Obtener el codcli del usuario logueado desde la sesión
@@ -129,8 +166,9 @@ app.get('/download-pdf', (req, res) => {
 });
 
 // Ruta para obtener ofertas
+// Ruta para obtener ofertas
 app.get('/ofertas', async (req, res) => {
-    const query = 'SELECT id, denom, precio, prove, codbar, porofe, stock, stkcor FROM aus_art WHERE porofe <> 0';
+    const query = 'SELECT id, denom, precio, prove, codbar, porofe, stock, stkcor, canofe FROM aus_art WHERE porofe <> 0';
     try {
         const [results] = await connection.query(query);
         
@@ -146,22 +184,64 @@ app.get('/ofertas', async (req, res) => {
     }
 });
 
-// Ruta para obtener precios con paginación
+
 app.get('/precios', async (req, res) => {
-    const page = parseInt(req.query.page) || 1; // Obtén el número de página de la consulta o usa 1 por defecto
+    const page = parseInt(req.query.page) || 1; // Obtén el número de página o usa 1 por defecto
     const pageSize = 100; // Número de artículos por página
     const offset = (page - 1) * pageSize; // Calcula el desplazamiento
-
-    const query = 'SELECT id, denom, precio, codbar, stock, stkcor FROM aus_art LIMIT ?, ?';
+    
+    const userId = req.session.codcli; // Obtén el ID del usuario logueado
+    
     try {
-        const [results] = await connection.query(query, [offset, pageSize]);
-        // Renderiza la vista con los resultados y la página actual
-        res.render('precios', { articulos: results, page });
+        // Consulta para obtener los valores de util y dtofab del usuario logueado
+        const [userResult] = await connection.query('SELECT util, dtofab FROM aus_cli WHERE id = ?', [userId]);
+        if (userResult.length === 0) {
+            return res.redirect('/');
+        }
+        
+        const { util, dtofab } = userResult[0];
+
+        // Log los valores de utilidad y descuento
+        console.log('Utilidad:', util, 'Descuento:', dtofab);
+
+        // Consulta para obtener los artículos con sus precios
+        const [articulos] = await connection.query(
+            'SELECT id, denom, precio, codbar, stock, stkcor, porofe, canofe FROM aus_art LIMIT ?, ?', 
+            [offset, pageSize]
+        );
+        
+        // Calcula el precio y precio de venta para cada artículo
+        articulos.forEach(articulo => {
+         
+
+            // Aplica dtofab al precio base
+            let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
+          
+
+            // Aplica porofe al precio ya descontado
+            let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
+          
+
+            // Calcula el precio de venta con utilidad
+            const precioConUtilidad = precioAjustado + (precioAjustado * util / 100);
+         
+
+            // Agrega IVA al precio de venta
+            articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
+          
+
+            // Actualiza el precio con descuento en el objeto
+            articulo.precio = precioConDescuento; // Actualiza el precio en el objeto
+        });
+        
+        // Renderiza la vista con los artículos y la página actual
+        res.render('precios', { articulos, page });
     } catch (err) {
         console.error('Error obteniendo los artículos:', err);
         res.status(500).send('Error del servidor');
     }
 });
+
 
 app.post('/buscar-articulos', async (req, res) => {
     const searchTerm = req.body.searchTerm;
@@ -178,8 +258,35 @@ app.post('/buscar-articulos', async (req, res) => {
         );
         console.log('Artículos encontrados:', articulos); // Agregar esto para depuración
 
-        // Si se encuentran artículos, devolverlos
+        // Si se encuentran artículos, ajustar precios
         if (articulos.length > 0) {
+            const userId = req.session.codcli; // Obtén el ID del usuario logueado
+            const [userResult] = await connection.query('SELECT util, dtofab FROM aus_cli WHERE id = ?', [userId]);
+            const { util, dtofab } = userResult[0];
+
+        // Calcula el precio y precio de venta para cada artículo
+        articulos.forEach(articulo => {
+          
+
+            // Aplica dtofab al precio base
+            let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
+          
+
+            // Aplica porofe al precio ya descontado
+            let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
+          
+
+            // Calcula el precio de venta con utilidad
+            const precioConUtilidad = precioAjustado + (precioAjustado * util / 100);
+          
+
+            // Agrega IVA al precio de venta
+            articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
+          
+
+            // Actualiza el precio con descuento en el objeto
+            articulo.precio = precioConDescuento; // Actualiza el precio en el objeto
+        });
             return res.json({ success: true, articulos });
         } else {
             return res.json({ success: false, message: 'No se encontraron artículos.' });
@@ -189,7 +296,9 @@ app.post('/buscar-articulos', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error en la búsqueda de artículos.' });
     }
 });
-app.post('/cerrar-sesion', (req, res) => {
+
+
+app.post('/logout', (req, res) => {
     // Lógica para cerrar sesión
     req.session.destroy(err => {
         if (err) {
@@ -361,15 +470,57 @@ app.post('/enviar-pedido', async (req, res) => {
 app.get('/equivalencias/:codbar', async (req, res) => {
     const codbar = req.params.codbar;
     try {
-        // Usa la conexión existente
-        const [rows] = await connection.execute(
-            `SELECT equiv1, equiv2, equiv3, equiv4, equiv5 
-             FROM aus_faeqv 
-             WHERE codigo = ?`, [codbar]
+        // Obtener las equivalencias
+        const [equivalencias] = await connection.execute(
+            `SELECT 
+                eq.equiv1, eq.equiv2, eq.equiv3, eq.equiv4, eq.equiv5
+             FROM 
+                aus_faeqv AS eq
+             WHERE 
+                eq.codigo = ?`, [codbar]
         );
 
-        if (rows.length > 0) {
-            res.json({ success: true, equivalencias: rows });
+        if (equivalencias.length > 0) {
+            const equivalenciaResults = [];
+
+            // Búsqueda de precio y stock para cada equivalencia
+            for (const eq of equivalencias) {
+                for (let i = 1; i <= 5; i++) {
+                    const equivKey = `equiv${i}`;
+                    const equivValue = eq[equivKey];
+
+                    if (equivValue) {
+                        // Formatear el valor de la equivalencia
+                        const formattedEquiv = equivValue.replace(/\s+/g, '-') // Reemplazar espacios con guiones
+                                                          .toUpperCase(); // Convertir a mayúsculas
+
+                        // Buscar precio y stock en aus_art
+                        const [articulo] = await connection.execute(
+                            `SELECT precio, stock 
+                             FROM aus_art 
+                             WHERE codbar = ?`, [formattedEquiv]
+                        );
+
+                        if (articulo.length > 0) {
+                            equivalenciaResults.push({
+                                equivalencia: equivValue,
+                                precio: articulo[0].precio,
+                                stock: articulo[0].stock
+                            });
+                        } else {
+                            equivalenciaResults.push({
+                                equivalencia: equivValue,
+                                precio: null,
+                                stock: null,
+                                message: 'No se encontraron datos para esta equivalencia.'
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Asegúrate de que se devuelven las equivalencias en el formato correcto
+            res.json({ success: true, equivalencias: equivalenciaResults });
         } else {
             res.json({ success: false, message: 'No se encontraron equivalencias.' });
         }
@@ -380,8 +531,47 @@ app.get('/equivalencias/:codbar', async (req, res) => {
 });
 
 
+
+app.get('/estado', async (req, res) => {
+    const codcli = req.session.codcli; // Obtener el codcli del usuario logueado
+
+    try {
+        // Consulta que agrupa los pedidos por número y filtra por codcli
+        const [pedidos] = await connection.query(`
+            SELECT codcli, transporte, fecha, numero 
+            FROM aus_seg 
+            WHERE codcli = ? 
+            GROUP BY numero
+        `, [codcli]);
+
+        res.render('estado', { pedidos });
+    } catch (error) {
+        console.error('Error obteniendo los pedidos:', error);
+        res.status(500).send('Error al cargar los pedidos');
+    }
+});
+
+app.get('/pedido-detalle/:numero', async (req, res) => {
+    const numeroPedido = req.params.numero;
+    const codcli = req.session.codcli; // Obtener el codcli del usuario logueado
+
+    try {
+        // Consulta para obtener las líneas del pedido del cliente logueado
+        const [lineasPedido] = await connection.query(
+            'SELECT codori, cantidad, descri, sit FROM aus_seg WHERE numero = ? AND codcli = ?',
+            [numeroPedido, codcli]
+        );
+
+        res.json(lineasPedido);
+    } catch (error) {
+        console.error('Error obteniendo los detalles del pedido:', error);
+        res.status(500).json({ message: 'Error obteniendo los detalles del pedido' });
+    }
+});
+
+
 // Servidor escuchando
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto ${PORT}`);
 });

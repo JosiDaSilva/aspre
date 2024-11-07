@@ -1,10 +1,87 @@
 /* Estilo general del body */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #2215d6;
+    background-color: #080401;
     margin: 0;
     padding: 0;
 }
+/* Botón flotante */
+.toggle-btn {
+   /* position: fixed; /* Hacerlo flotante */
+    top: 20px; /* Distancia desde el borde superior */
+    left: 20px; /* Distancia desde el borde izquierdo */
+    z-index: 1000; /* Asegurar que esté por encima de otros elementos */
+    background-color: #ec7403; /* Color de fondo verde */
+    color: white; /* Color del texto */
+    border: none; /* Sin bordes */
+    padding: 10px 20px; /* Relleno alrededor del botón */
+    border-radius: 30px; /* Bordes redondeados */
+    font-size: 16px; /* Tamaño del texto */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    display: flex; /* Flexbox para alinear ícono e imagen */
+    align-items: center; /* Alinea ícono verticalmente */
+}
+
+/* Estilo para el ícono tipo 'tic-tac' */
+.toggle-btn i {
+    margin-right: 10px; /* Espacio entre el ícono y el texto */
+    font-size: 20px; /* Tamaño del ícono */
+}
+.descuento {
+    color: red;
+    font-weight: bold;
+}
+/* Estilo para la imagen del receptor de luz */
+.icon-image {
+    width: 20px; /* Ancho de la imagen */
+    height: 20px; /* Alto de la imagen */
+    margin-right: 10px; /* Espacio entre la imagen y el texto */
+}
+
+/* Estilo de hover (cuando se pasa el ratón sobre el botón) */
+.toggle-btn:hover {
+    background-color: #9b4e05; /* Cambiar color al pasar por encima */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Aumentar la sombra */
+}
+/* Estilo para la imagen dentro del botón */
+.icon-image {
+    width: 24px; /* Ajustar tamaño de la imagen */
+    height: 24px;
+}
+
+/* Botón flotante */
+.toggle-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px; /* Espacio superior para la tabla */
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.table th {
+    background-color: #f2f2f2;
+}
+
+.product-image {
+    width: 50px; /* Ajusta el tamaño de la imagen según sea necesario */
+    height: auto;
+}
+
 
 /* Contenedor principal */
 .container {
@@ -12,7 +89,7 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
 }
@@ -63,6 +140,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
+    
 }
 
 /* Estilo para cada artículo */
@@ -89,13 +167,49 @@ h1 {
     width: 100px; /* Ancho fijo de la imagen */
     height: 100px; /* Alto fijo de la imagen */
 }
+.equivalencia-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.equivalencia-column {
+    flex: 1; /* Cada columna tomará el mismo espacio */
+    padding: 0 10px;
+}
+
+.stock.in-stock {
+    color: green; /* Pintar el stock en verde si hay stock */
+}
+
+.stock.no-stock {
+    color: red; /* Opcional: pintar el stock en rojo si no hay stock */
+}
+
+.equivalencia-item .mas-info-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.equivalencia-item .mas-info-button:hover {
+    background-color: #0056b3;
+}
 
 /* Estilo de los nombres de los productos */
 .product-name {
     font-size: 1.5rem;
     color: #007BFF;
 }
-
+.precio-venta {
+    color: #27ae60;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
 /* Estilo para los precios */
 .precio {
     font-size: 1.2rem;
@@ -103,7 +217,7 @@ h1 {
 
 /* Estilo para la entrada de cantidad */
 .quantity-input {
-    width: 50%;
+    width: 80%;
     max-width: 100px;
     padding: 8px;
     border: 2px solid #007BFF;
@@ -122,7 +236,7 @@ h1 {
 
 /* Estilo de los botones */
 .add-button {
-    background-color: #28a745;
+    background-color: #f07c04;
     color: white;
     border: none;
     border-radius: 5px;
@@ -133,7 +247,7 @@ h1 {
 }
 
 .add-button:hover {
-    background-color: #218838;
+    background-color: #000000;
 }
 
 /* Estilo para mensajes de alerta */
@@ -368,4 +482,190 @@ h1 {
 #equivalencias-items p {
     margin: 10px 0; /* Margen vertical entre párrafos */
     line-height: 1.5; /* Espaciado entre líneas */
+}
+/* Estilo del botón de confirmación */
+.confirm-button {
+    background-color: #28a745; /* Verde */
+    color: white;
+    padding: 12px 20px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    width: 100%;
+}
+
+.confirm-button:hover {
+    background-color: #218838; /* Verde más oscuro al pasar el ratón */
+}
+/* Estilo del campo de entrada de cantidad */
+/* Estilo del campo de entrada de cantidad */
+.quantity-inputT {
+    width: 100px;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 18px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: block;
+    margin-left: auto;  /* Centra horizontalmente */
+    margin-right: auto; /* Centra horizontalmente */
+}
+/* Estilo del título en el modal */
+.modal-content h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #333;
+    
+}
+
+.confirm-button:hover {
+    background-color: #218838; /* Verde más oscuro al pasar el ratón */
+}
+/* Estilo base para la imagen */
+.product-image {
+    width: 100px; /* Ancho inicial de la imagen */
+    transition: transform 0.3s ease; /* Animación suave */
+    cursor: pointer; /* Cambia el cursor al pasar sobre la imagen */
+}
+
+
+/* Clase que agranda la imagen cuando se hace clic */
+.enlarged {
+    transform: scale(4); /* Agranda la imagen al 200% */
+    z-index: 10; /* Asegura que la imagen esté por encima de otros elementos */
+}
+
+/* Botón de Más Info */
+.mas-info-button {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.mas-info-button:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+/* Estilos generales del modal */
+#equivalencias-modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Fijo en la pantalla */
+    z-index: 1000; /* Por encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    overflow: auto; /* Permitir scroll si es necesario */
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro con opacidad */
+}
+
+/* Contenedor del contenido del modal */
+.modal-content {
+    background-color: #fff; /* Fondo blanco */
+    margin: 15% auto; /* Centrado */
+    padding: 20px;
+    border: 1px solid #888; /* Borde gris claro */
+    width: 80%; /* Ancho del modal */
+    max-width: 600px; /* Ancho máximo */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+}
+
+/* Estilos del encabezado del modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.5em; /* Tamaño de fuente del título */
+    font-weight: bold; /* Negrita */
+}
+
+/* Botón de cerrar */
+.close-equivalencias {
+    background-color: transparent; /* Sin fondo */
+    border: none; /* Sin borde */
+    font-size: 1.2em; /* Tamaño de fuente del botón */
+    cursor: pointer; /* Cambiar cursor al pasar sobre el botón */
+}
+
+/* Estilos de la lista de equivalencias */
+.equivalencia-item {
+    padding: 10px 0; /* Espaciado interno */
+    border-bottom: 1px solid #eee; /* Línea separadora */
+}
+
+.equivalencia-item:last-child {
+    border-bottom: none; /* Sin línea en el último elemento */
+}
+
+/* Estilo para el botón "Más Info" */
+.mas-info-button {
+    background-color: #007bff; /* Color azul */
+    color: white; /* Texto blanco */
+    border: none; /* Sin borde */
+    padding: 8px 12px; /* Espaciado interno */
+    border-radius: 4px; /* Bordes redondeados */
+    cursor: pointer; /* Cambiar cursor al pasar sobre el botón */
+    transition: background-color 0.3s; /* Transición suave */
+}
+
+.mas-info-button:hover {
+    background-color: #0056b3; /* Color azul oscuro al pasar el mouse */
+}
+
+/* Estilos para los mensajes */
+.alert {
+    background-color: #f8d7da; /* Color de fondo */
+    color: #721c24; /* Color del texto */
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb; /* Borde */
+    border-radius: 4px; /* Bordes redondeados */
+}
+/* General styles for the table */
+.table {
+    width: 100%; /* Make the table take the full width */
+    border-collapse: collapse; /* Collapse borders */
+}
+
+.table th, .table td {
+    padding: 8px; /* Add padding */
+    text-align: left; /* Align text to the left */
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 768px) {
+    .table {
+        display: block; /* Make the table block to enable scrolling */
+        overflow-x: auto; /* Allow horizontal scrolling */
+    }
+
+    .table thead {
+        display: none; /* Hide headers */
+    }
+
+    .table tr {
+        display: flex; /* Use flexbox for the rows */
+        flex-direction: column; /* Stack rows vertically */
+        border: 1px solid #ddd; /* Add a border to each row */
+        margin-bottom: 10px; /* Add space between rows */
+    }
+
+    .table td {
+        display: flex; /* Use flexbox for the cells */
+        justify-content: space-between; /* Space cells evenly */
+        border-bottom: 1px solid #ddd; /* Add border to bottom */
+        align-items: center;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 5px; /* Space between buttons */
+    }
 }
