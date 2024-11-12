@@ -189,53 +189,70 @@ app.get('/precios', async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Obtén el número de página o usa 1 por defecto
     const pageSize = 100; // Número de artículos por página
     const offset = (page - 1) * pageSize; // Calcula el desplazamiento
-    
+
     const userId = req.session.codcli; // Obtén el ID del usuario logueado
-    
+
     try {
         // Consulta para obtener los valores de util y dtofab del usuario logueado
         const [userResult] = await connection.query('SELECT util, dtofab FROM aus_cli WHERE id = ?', [userId]);
         if (userResult.length === 0) {
             return res.redirect('/');
         }
-        
+
         const { util, dtofab } = userResult[0];
 
         // Log los valores de utilidad y descuento
         console.log('Utilidad:', util, 'Descuento:', dtofab);
 
-        // Consulta para obtener los artículos con sus precios
+        // Consulta para obtener los artículos con sus precios, paginados
         const [articulos] = await connection.query(
-            'SELECT id, denom, precio, codbar, stock, stkcor, porofe, canofe FROM aus_art LIMIT ?, ?', 
+            'SELECT id, denom, precio, codbar, stock, stkcor, porofe, canofe, prove FROM aus_art LIMIT ?, ?', 
             [offset, pageSize]
         );
-        
+
+        // Obtener los códigos de proveedor de los artículos
+        const proveedores = articulos.map(articulo => articulo.prove);
+
+        // Consulta para obtener las utilidades de los proveedores de los artículos en una sola consulta
+        const [utilidadesProveedorResult] = await connection.query(
+            'SELECT codpro, utilidad FROM aus_fauti WHERE codcli = ? AND codpro IN (?)', 
+            [userId, proveedores]
+        );
+
+        // Crear un mapa de utilidades para los proveedores
+        const utilidadMap = {};
+        utilidadesProveedorResult.forEach(item => {
+            utilidadMap[item.codpro] = item.utilidad;
+        });
+
         // Calcula el precio y precio de venta para cada artículo
-        articulos.forEach(articulo => {
-         
+        for (const articulo of articulos) {
+            const codpro = articulo.prove; // Obtener el código de proveedor del artículo
+
+            // Determina la utilidad a aplicar: la del proveedor o la del cliente logueado si no existe
+            let utilidadAplicada = utilidadMap[codpro] !== undefined ? utilidadMap[codpro] : util;
 
             // Aplica dtofab al precio base
             let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
-          
 
             // Aplica porofe al precio ya descontado
             let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
-          
 
             // Calcula el precio de venta con utilidad
-            const precioConUtilidad = precioAjustado + (precioAjustado * util / 100);
-         
+            const precioConUtilidad = precioAjustado + (precioAjustado * utilidadAplicada / 100);
 
             // Agrega IVA al precio de venta
             articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
-          
 
             // Actualiza el precio con descuento en el objeto
             articulo.precio = precioConDescuento; // Actualiza el precio en el objeto
-        });
-        
+        }
+
+        // Consulta para obtener los proveedores
+        const [proveedoresResult] = await connection.query('SELECT codigo, razon FROM aus_pro');
+
         // Renderiza la vista con los artículos y la página actual
-        res.render('precios', { articulos, page });
+        res.render('precios', { proveedores: proveedoresResult, articulos, page });
     } catch (err) {
         console.error('Error obteniendo los artículos:', err);
         res.status(500).send('Error del servidor');
@@ -243,50 +260,150 @@ app.get('/precios', async (req, res) => {
 });
 
 
+// Ruta para cargar los proveedores
+app.get('/cargar-proveedores', async (req, res) => {
+    try {
+        const sql = "SELECT codigo, razon FROM aus_pro";
+        const [resultados] = await connection.query(sql); // Utiliza await y destructuración
+        res.json({ proveedores: resultados });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/filtrar-articulos', async (req, res) => {
+    const proveedorId = req.body.proveedorId;
+
+    if (!proveedorId) {
+        return res.status(400).json({ success: false, message: 'El ID del proveedor es requerido.' });
+    }
+
+    try {
+        // Obtén todos los artículos del proveedor seleccionado
+        const [articulos] = await connection.query(
+            `SELECT * FROM aus_art WHERE prove = ?`, 
+            [proveedorId]
+        );
+
+        if (articulos.length > 0) {
+            const userId = req.session.codcli;
+
+            // Obtén los datos de utilidad y dtofab del cliente logueado
+            const [userResult] = await connection.query(
+                'SELECT util, dtofab FROM aus_cli WHERE id = ?', 
+                [userId]
+            );
+            const { util, dtofab } = userResult[0];
+
+            // Obtén todas las utilidades de los proveedores asociados a los artículos en una sola consulta
+            const proveedorCodigos = articulos.map(articulo => articulo.prove);
+            const [utilidadesProveedor] = await connection.query(
+                'SELECT codpro, utilidad FROM aus_fauti WHERE codcli = ? AND codpro IN (?)', 
+                [userId, proveedorCodigos]
+            );
+
+            // Mapea las utilidades de los proveedores para acceso rápido
+            const utilidadMap = {};
+            utilidadesProveedor.forEach(item => {
+                utilidadMap[item.codpro] = item.utilidad;
+            });
+
+            // Calcula el precio y precio de venta para cada artículo
+            for (const articulo of articulos) {
+                // Determina la utilidad a aplicar: la del proveedor o la del cliente logueado si no existe
+                const utilidadAplicada = utilidadMap[articulo.prove] !== undefined
+                    ? utilidadMap[articulo.prove]
+                    : util;
+
+                // Aplica dtofab al precio base
+                let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
+
+                // Aplica porofe al precio ya descontado
+                let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
+
+                // Calcula el precio de venta con utilidad
+                const precioConUtilidad = precioAjustado + (precioAjustado * utilidadAplicada / 100);
+
+                // Agrega IVA al precio de venta
+                articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
+
+                // Actualiza el precio con descuento en el objeto
+                articulo.precio = precioConDescuento;
+            }
+
+            return res.json({ success: true, articulos });
+        } else {
+            return res.json({ success: false, message: 'No se encontraron artículos para este proveedor.' });
+        }
+    } catch (error) {
+        console.error('Error en el filtrado de artículos:', error);
+        return res.status(500).json({ success: false, message: 'Error al filtrar los artículos.' });
+    }
+});
+
+
+
+
+
 app.post('/buscar-articulos', async (req, res) => {
     const searchTerm = req.body.searchTerm;
 
-    // Dividir el término de búsqueda en palabras individuales
+    // Divide el término de búsqueda en palabras y crea una consulta de búsqueda flexible
     const words = searchTerm.split(' ').filter(word => word.length > 0);
     const likeQueries = words.map(word => `denom LIKE ?`).join(' AND ');
     const values = words.map(word => `%${word}%`);
 
     try {
+        // Busca los artículos que coincidan con el término de búsqueda o código de barras
         const [articulos] = await connection.query(
-            `SELECT * FROM aus_art WHERE (${likeQueries}) OR codbar LIKE ?`, 
+            `SELECT id, denom, precio, codbar, stock, stkcor, porofe, canofe, prove 
+            FROM aus_art 
+            WHERE (${likeQueries}) OR codbar LIKE ?`, 
             [...values, `%${searchTerm}%`]
         );
-        console.log('Artículos encontrados:', articulos); // Agregar esto para depuración
 
-        // Si se encuentran artículos, ajustar precios
         if (articulos.length > 0) {
-            const userId = req.session.codcli; // Obtén el ID del usuario logueado
-            const [userResult] = await connection.query('SELECT util, dtofab FROM aus_cli WHERE id = ?', [userId]);
+            const userId = req.session.codcli;
+
+            // Obtén la utilidad y dtofab del cliente logueado
+            const [userResult] = await connection.query(
+                'SELECT util, dtofab FROM aus_cli WHERE id = ?', 
+                [userId]
+            );
             const { util, dtofab } = userResult[0];
 
-        // Calcula el precio y precio de venta para cada artículo
-        articulos.forEach(articulo => {
-          
+            // Obtén las utilidades de todos los proveedores en una sola consulta
+            const proveedorCodigos = [...new Set(articulos.map(articulo => articulo.prove))];
+            const [utilidadesProveedor] = await connection.query(
+                'SELECT codpro, utilidad FROM aus_fauti WHERE codcli = ? AND codpro IN (?)', 
+                [userId, proveedorCodigos]
+            );
 
-            // Aplica dtofab al precio base
-            let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
-          
+            // Mapea las utilidades de los proveedores para acceso rápido
+            const utilidadMap = {};
+            utilidadesProveedor.forEach(item => {
+                utilidadMap[item.codpro] = item.utilidad;
+            });
 
-            // Aplica porofe al precio ya descontado
-            let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
-          
+            // Calcula el precio de venta para cada artículo usando la utilidad y dtofab adecuados
+            for (const articulo of articulos) {
+                const codpro = articulo.prove;
+                const utilidadAplicada = utilidadMap[codpro] !== undefined ? utilidadMap[codpro] : util;
 
-            // Calcula el precio de venta con utilidad
-            const precioConUtilidad = precioAjustado + (precioAjustado * util / 100);
-          
+                // Aplica dtofab y porofe al precio base
+                let precioConDescuento = articulo.precio - (articulo.precio * dtofab / 100);
+                let precioAjustado = precioConDescuento + (precioConDescuento * (articulo.porofe || 0) / 100);
 
-            // Agrega IVA al precio de venta
-            articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
-          
+                // Calcula el precio de venta con la utilidad aplicada
+                const precioConUtilidad = precioAjustado + (precioAjustado * utilidadAplicada / 100);
 
-            // Actualiza el precio con descuento en el objeto
-            articulo.precio = precioConDescuento; // Actualiza el precio en el objeto
-        });
+                // Agrega IVA al precio de venta final
+                articulo.precio_venta = precioConUtilidad + (precioConUtilidad * 0.21);
+
+                // Actualiza el precio con descuento en el objeto del artículo
+                articulo.precio = precioConDescuento;
+            }
+
             return res.json({ success: true, articulos });
         } else {
             return res.json({ success: false, message: 'No se encontraron artículos.' });
@@ -296,6 +413,7 @@ app.post('/buscar-articulos', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error en la búsqueda de artículos.' });
     }
 });
+
 
 
 app.post('/logout', (req, res) => {
@@ -316,33 +434,49 @@ app.post('/agregar-carrito', async (req, res) => {
     const codcli = req.session.codcli; 
     const { codbar, cantidad, zona } = req.body; 
 
-    // Obtener la fecha actual en formato YYYY-MM-DD
-    const fecha = new Date().toISOString().slice(0, 10);
-
-    // 1. Obtener la descripción y precio del artículo
-    const descripcionPrecioQuery = 'SELECT denom, precio FROM aus_art WHERE codbar = ?';
     try {
-        const [result] = await connection.query(descripcionPrecioQuery, [codbar]);
+        // 1. Obtener el descuento (dtofab) del cliente
+        const descuentoQuery = 'SELECT dtofab FROM aus_cli WHERE id = ?';
+        const [clienteResult] = await connection.query(descuentoQuery, [codcli]);
+
+        // Verificar que el cliente existe
+        if (clienteResult.length === 0) {
+            return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+
+        const dtofab = clienteResult[0].dtofab; // Descuento del cliente
+
+        // 2. Obtener la descripción y precio del artículo
+        const descripcionPrecioQuery = 'SELECT denom, precio FROM aus_art WHERE codbar = ?';
+        const [articuloResult] = await connection.query(descripcionPrecioQuery, [codbar]);
         
         // Verificar que se encontró el artículo
-        if (result.length === 0) {
+        if (articuloResult.length === 0) {
             return res.status(404).json({ success: false, message: 'Artículo no encontrado' });
         }
 
-        const descripcion = result[0].denom; // Asumimos que la descripción es la primera (y única) fila
-        const precio = result[0].precio; // Asumimos que el precio es el mismo
+        const descripcion = articuloResult[0].denom;
+        const precio = articuloResult[0].precio;
 
-        // 2. Insertar en la tabla aus_carrito
-        const query = 'INSERT INTO aus_carrito (codcli, codbar, descripcion, cantidad, zona, fecha, precio) VALUES (?, ?, ?, ?, ?, NOW(), ?)';
-        await connection.query(query, [codcli, codbar, descripcion, cantidad, zona, precio]);
+        // 3. Calcular el precio con descuento
+        const descuentoAplicado = (precio * dtofab) / 100;
+        const precioConDescuento = precio - descuentoAplicado;
+
+        // 4. Insertar en la tabla aus_carrito con el precio calculado
+        const query = `
+            INSERT INTO aus_carrito (codcli, codbar, descripcion, cantidad, zona, fecha, precio)
+            VALUES (?, ?, ?, ?, ?, NOW(), ?)
+        `;
+        await connection.query(query, [codcli, codbar, descripcion, cantidad, zona, precioConDescuento]);
         
-        console.log('Producto agregado al carrito.');
+        console.log('Producto agregado al carrito con descuento aplicado.');
         return res.status(200).json({ success: true, message: 'Producto agregado correctamente' });
     } catch (err) {
         console.error('Error al agregar el producto al carrito:', err);
         return res.status(500).json({ success: false, message: 'Error al agregar el producto al carrito' });
     }
 });
+
 // Ruta para obtener el carrito
 app.get('/carrito', async (req, res) => {
     const codcli = req.session.codcli; // Obtener el codcli del usuario logueado desde la sesión
@@ -568,6 +702,101 @@ app.get('/pedido-detalle/:numero', async (req, res) => {
         res.status(500).json({ message: 'Error obteniendo los detalles del pedido' });
     }
 });
+// Middleware para parsear los datos de formulario
+app.use(express.urlencoded({ extended: true }));  // Para manejar formularios con datos codificados en URL
+app.use(express.json());  // Para manejar solicitudes con datos en formato JSON
+
+// Ruta para obtener los proveedores y mostrar la ventana de utilidad
+app.get('/utilidad', async (req, res) => {
+    const codcli = req.session.codcli; // Obtener el código del cliente logueado desde la sesión
+
+    if (!codcli) {
+        return res.status(400).json({ message: "Código de cliente no encontrado en la sesión." });
+    }
+
+    const sql = `
+        SELECT p.codigo, p.razon, IFNULL(f.utilidad, '') AS utilidad
+        FROM aus_pro p
+        LEFT JOIN aus_fauti f ON f.codcli = ? AND f.codpro = p.codigo
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM aus_fauti f 
+            WHERE f.codcli = ? AND f.codpro = p.codigo
+        ) OR f.codcli = ?  -- Incluye los que ya tienen utilidad
+    `;
+
+    try {
+        const [productos] = await connection.execute(sql, [codcli, codcli, codcli]);
+
+        // Enviar la vista con los productos obtenidos y sus utilidades
+        res.render('utilidad.ejs', { productos });
+    } catch (error) {
+        console.error('Error al obtener los proveedores: ', error);
+        return res.status(500).json({ error });
+    }
+});
+app.post('/guardar-utilidad', async (req, res) => {
+    const codcli = req.session.codcli; // Obtener el código del cliente logueado desde la sesión
+
+    if (!codcli) {
+        return res.status(400).json({ message: "Código de cliente no encontrado en la sesión." });
+    }
+
+    // Recolectar las utilidades ingresadas en el formulario
+    const utilidades = [];
+    for (const key in req.body) {
+        if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+            const codpro = key.replace('utilidad_', ''); // Extraer el código del proveedor del nombre del campo
+            const utilidad = req.body[key];
+
+            // Verifica que la utilidad haya sido modificada antes de agregarla al array
+            if (utilidad !== "") {  // Si el valor no está vacío (es decir, ha sido modificado)
+                utilidades.push([codcli, codpro, utilidad]);
+            }
+        }
+    }
+
+    if (utilidades.length === 0) {
+        return res.status(400).json({ message: "No se han ingresado utilidades modificadas." });
+    }
+
+    // SQL para insertar o actualizar las utilidades
+    const sqlInsertOrUpdate = `
+        INSERT INTO aus_fauti (codcli, codpro, utilidad) 
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE utilidad = VALUES(utilidad);
+    `;
+
+    try {
+        // Ejecutar la operación de inserción o actualización en la base de datos
+        for (const [codcli, codpro, utilidad] of utilidades) {
+            // Primero, verifica si el registro ya existe
+            const checkQuery = 'SELECT id FROM aus_fauti WHERE codcli = ? AND codpro = ?';
+            const [existingRecord] = await connection.execute(checkQuery, [codcli, codpro]);
+
+            if (existingRecord.length > 0) {
+                // Si ya existe, actualizamos la utilidad
+                const updateQuery = 'UPDATE aus_fauti SET utilidad = ? WHERE codcli = ? AND codpro = ?';
+                await connection.execute(updateQuery, [utilidad, codcli, codpro]);
+                console.log(`Utilidad actualizada para codcli: ${codcli}, codpro: ${codpro}`);
+            } else {
+                // Si no existe, insertamos un nuevo registro
+                await connection.execute(sqlInsertOrUpdate, [codcli, codpro, utilidad]);
+                console.log(`Nueva utilidad guardada para codcli: ${codcli}, codpro: ${codpro}`);
+            }
+        }
+
+        // Redirigir a la página de utilidad después de guardar
+        res.redirect('/utilidad'); // Redirige a /utilidad después de guardar
+    } catch (error) {
+        console.error('Error al guardar o actualizar las utilidades: ', error);
+        return res.status(500).json({ error });
+    }
+});
+
+
+
+
 
 
 // Servidor escuchando

@@ -43,7 +43,7 @@
         <img src="/images/rastreo.png" alt="seguimiento" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
         <span>Seguimiento de Pedido</span>
     </a>
-     <a href="#" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
+     <a href="utilidad" class="btn" style="position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none;">
         <img src="/images/logo.png" alt="utilidad" class="icon" style="width: 48px; height: 48px; margin-bottom: 10px;">
         <span>Utilidad por Proveedor</span>
     </a>
@@ -60,13 +60,13 @@
                 <div id="misiones" class="column">
                     <h3>Misiones</h3>
                 </div>
-                <div id="corrientes" class="column">
+               <div id="corrientes" class="column">
                     <h3>Corrientes</h3>
                 </div>
             </div>
             <button id="enviar-pedido">Enviar Pedido</button>
         </div>
-    </div>
+    </div> 
 
     <!-- Modal para calcular utilidad y descuento -->
     <div id="calculator-modal" class="modal">
@@ -85,139 +85,143 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            // Abrir el modal del carrito
-            $("#carrito-icon").click(function() {
-                $.get("/carrito", function(data) {
-                    renderItems(data); 
-                });
-            });
+       $(document).ready(function() {
+    // Abrir el modal del carrito
+    $("#carrito-icon").click(function() {
+        $.get("/carrito", function(data) {
+            renderItems(data); 
+        });
+    });
 
-            
-            function renderItems(items) {
-               
-                const misionesContainer = $("#misiones");
-                const corrientesContainer = $("#corrientes");
+    function renderItems(items) {
+        const misionesContainer = $("#misiones");
+        const corrientesContainer = $("#corrientes");
 
-                
-                misionesContainer.html('<h3>Misiones</h3>');
-                corrientesContainer.html('<h3>Corrientes</h3>');
+        // Limpiar contenido actual y agregar encabezado
+        misionesContainer.html('<h3>Misiones</h3>');
+        corrientesContainer.html('<h3>Corrientes</h3>');
 
-                
-                items.forEach(item => {
-                    
-                    const itemDiv = $(`
-                        <div class="carrito-details">
-                            <p>${item.codbar}</p>
-                            <p>${item.descripcion}</p>
-                            <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
-                            <p>Precio: $${item.precio.toFixed(2)}</p>
-                            <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p>
-                            <p>Articulo para Zona: ${item.zona}</p>
-                            <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
-                            <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button>
-                        </div>
-                    `);
+        items.forEach(item => {
+            const itemDiv = $(`
+                <div class="carrito-details">
+                    <p>${item.codbar}</p>
+                    <p>${item.descripcion}</p>
+                    <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
+                    <p class="precio">Precio: $${item.precio.toFixed(2)}</p>
+                    <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p>
+                    <p>Articulo para Zona: ${item.zona}</p>
+                    <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
+                    <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button>
+                </div>
+            `);
 
-                    
-                    if (item.zona === 1) {
-                        misionesContainer.append(itemDiv);
-                    } else if (item.zona === 2) {
-                        corrientesContainer.append(itemDiv);
-                    }
-                });
-
-               
-                $("#carrito-modal").show();
+            // Añadir el artículo a la zona correspondiente
+            if (item.zona === 1) {
+                misionesContainer.append(itemDiv);
+            } else if (item.zona === 2) {
+                corrientesContainer.append(itemDiv);
             }
+        });
 
-            // Cerrar el modal del carrito
-            $(".close").click(function() {
+        // Calcular y mostrar los totales iniciales
+        actualizarTotal();
+
+        $("#carrito-modal").show();
+    }
+
+    // Cerrar el modal del carrito
+    $(".close").click(function() {
+        $("#carrito-modal").hide();
+    });
+
+    // Cerrar el modal si se hace clic fuera de él
+    $(window).click(function(event) {
+        if (event.target == document.getElementById('carrito-modal')) {
+            $("#carrito-modal").hide();
+        }
+    });
+
+    // Manejar el envío del pedido
+    $("#enviar-pedido").click(function() {
+        const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+
+        if (sucursal === null) return;
+
+        let zona;
+        if (sucursal === '1') zona = 1;
+        else if (sucursal === '2') zona = 2;
+        else {
+            alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
+            return;
+        }
+
+        const transporte = prompt("Por favor, escribe el transporte:");
+        const obs = prompt("Por favor, escribe una observación (opcional):");
+
+        $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
+            .done(function(response) {
+                alert(response.message);
                 $("#carrito-modal").hide();
+            })
+            .fail(function() {
+                alert("Hubo un problema al enviar el pedido.");
             });
-    
-            // Cerrar el modal si se hace clic fuera de él
-            $(window).click(function(event) {
-                if (event.target == document.getElementById('carrito-modal')) {
-                    $("#carrito-modal").hide();
-                }
+    });
+
+    // Actualizar la cantidad
+    $(document).on('click', '.actualizar-btn', function() {
+        const codbar = $(this).data('codbar');
+        const nuevaCantidad = $(this).siblings('.cantidad-input').val();
+
+        $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
+            .done(function(response) {
+                alert("Cantidad actualizada con éxito.");
+                actualizarTotal();
+            })
+            .fail(function() {
+                alert("Hubo un problema al actualizar la cantidad.");
             });
-    
-            // Manejar el envío del pedido
-            $("#enviar-pedido").click(function() {
-                const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+    });
 
-                if (sucursal === null) {
-                    return; // Si el usuario cancela, no se envía el pedido
-                }
+    // Eliminar artículo del carrito
+    $(document).on('click', '.eliminar-btn', function() {
+        const codbar = $(this).data('codbar');
 
-                let zona;
-                if (sucursal.toLowerCase() === '1') {
-                    zona = 1; // Zona 1 es Misiones
-                } else if (sucursal.toLowerCase() === '2') {
-                    zona = 2; // Zona 2 es Corrientes
-                } else {
-                    alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
-                    return;
-                }
-
-                const transporte = prompt("Por favor, escribe el transporte:");
-                const obs = prompt("Por favor, escribe una observación (opcional):");
-
-                $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
-                    .done(function(response) {
-                        alert(response.message);
-                        $("#carrito-modal").hide(); // Cerrar el modal del carrito
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al enviar el pedido.");
-                    });
+        $.post("/eliminar-articulo", { codbar: codbar })
+            .done(function(response) {
+                alert("Artículo eliminado con éxito.");
+                $("#carrito-icon").click();
+            })
+            .fail(function() {
+                alert("Hubo un problema al eliminar el artículo.");
             });
+    });
 
-            // Actualizar la cantidad
-            $(document).on('click', '.actualizar-btn', function() {
-                const codbar = $(this).data('codbar');
-                const nuevaCantidad = $(this).siblings('.cantidad-input').val();
-    
-                $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
-                    .done(function(response) {
-                        alert("Cantidad actualizada con éxito.");
-                        actualizarTotal();
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al actualizar la cantidad.");
-                    });
-            });
-    
-            // Eliminar artículo del carrito
-            $(document).on('click', '.eliminar-btn', function() {
-                const codbar = $(this).data('codbar');
-    
-                $.post("/eliminar-articulo", { codbar: codbar })
-                    .done(function(response) {
-                        alert("Artículo eliminado con éxito.");
-                        $("#carrito-icon").click();
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al eliminar el artículo.");
-                    });
-            });
-    
-            // Función para recalcular el total del carrito
-            function actualizarTotal() {
-                let total = 0;
-    
-                $(".carrito-item").each(function() {
-                    const cantidad = $(this).find('.cantidad-input').val();
-                    const precio = parseFloat($(this).find('p').eq(1).text().replace("Precio: $", ""));
-                    const itemTotal = precio * cantidad; // Calcula el total por artículo
-                    $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`); // Actualiza el total del artículo
-                    total += itemTotal; // Sumar al total general
-                });
-    
-                $(".total").text(`Total: $${total.toFixed(2)}`); // Actualiza el total del carrito
-            }
+    // Función para recalcular el total de cada zona
+    function actualizarTotal() {
+        let totalMisiones = 0;
+        let totalCorrientes = 0;
 
+        $("#misiones .carrito-details").each(function() {
+            const cantidad = $(this).find('.cantidad-input').val();
+            const precio = parseFloat($(this).find('.precio').text().replace("Precio: $", ""));
+            const itemTotal = precio * cantidad;
+            $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`);
+            totalMisiones += itemTotal;
+        });
+
+        $("#corrientes .carrito-details").each(function() {
+            const cantidad = $(this).find('.cantidad-input').val();
+            const precio = parseFloat($(this).find('.precio').text().replace("Precio: $", ""));
+            const itemTotal = precio * cantidad;
+            $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`);
+            totalCorrientes += itemTotal;
+        });
+
+        // Mostrar los totales de cada zona
+        $("#misiones").append(`<p class="total">Total Misiones: $${totalMisiones.toFixed(2)}</p>`);
+        $("#corrientes").append(`<p class="total">Total Corrientes: $${totalCorrientes.toFixed(2)}</p>`);
+    }
             // Abrir el modal de la calculadora
             // Abrir el modal de la calculadora
             $("#calculator-icon").click(function() {

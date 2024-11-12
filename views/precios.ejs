@@ -11,7 +11,7 @@
     <div class="container">
         <header>
             <div class="logo-container">
-                <a href="/precios"> <!-- Enlace que redirige a la página inicio.ejs -->
+                <a href="/inicio"> <!-- Enlace que redirige a la página inicio.ejs -->
                     <img src="/images/logo.png" alt="Logo de la Empresa" class="logo">
                 </a>
             </div>
@@ -35,153 +35,29 @@
             <button onclick="buscarArticulos()">Buscar</button>
         </div>
 
-        <!-- Contenedor de la grilla -->
-        <div id="articulosGrid">
+        <div class="grid" id="articulosGrid">
             <% if (articulos && articulos.length > 0) { %>
-                <!-- Vista de Cuadrícula (cuando está activa la vista cuadrícula) -->
-                <div class="grid grid-view">
-                    <% articulos.forEach(function(articulo) { 
-                        // Calcular el precio con descuento
-                        let precioConDescuento = articulo.precio;
-                        if (articulo.porofe && articulo.porofe !== 0) {
-                            const descuento = (articulo.precio * Math.abs(articulo.porofe)) / 100;
-                            precioConDescuento = articulo.precio - descuento;
-                        }
-                    %>
-                        <div class="item" data-codbar="<%= articulo.codbar %>" data-denom="<%= articulo.denom.toLowerCase() %>">
-                            <img class="product-image" src="/images/<%= articulo.codbar.replace(/\s+/g, '-') %>.jpg" alt="<%= articulo.denom %>" onerror="this.onerror=null; this.src='/images/logo.png';" onclick="toggleImageSize(event)">
-                            <p class="codbar">Código Barra: <%= articulo.codbar %></p>
-                            <h2 class="product-name"><%= articulo.denom %></h2>
-                            <p class="precio">Precio Costo: $<%= precioConDescuento.toFixed(2) %></p> <!-- Mostrar solo precio con descuento -->
-                            
-                            <!-- Mostrar el precio oferta con descuento y cantidad de oferta -->
-                            <% if (articulo.porofe && articulo.porofe !== 0) { %>
-                                <p class="descuento">Precio oferta con - <%= Math.abs(articulo.porofe) %>% (a partir de: <%= articulo.canofe %> unidades comprada)</p>
-                            <% } %>
-                            
-                            <p class="precio-venta">Precio de Venta: $<%= articulo.precio_venta.toFixed(2) %></p>
-                            <p class="stock">Stock Misiones: <strong><%= articulo.stock %></strong></p>
-                            <p class="stock">Stock Corrientes: <strong><%= articulo.stkcor %></strong></p>
-                            <input type="number" id="cantidad-<%= articulo.codbar %>" class="quantity-input" placeholder="Cantidad" min="1">
-                            <div class="button-group">
-                                <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Misiones')">Agregar al carrito Misiones</button>
-                                <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Corrientes')">Agregar al carrito Corrientes</button>
-                                <button class="equivalence-button" data-codbar="<%= articulo.codbar %>">Ver Equivalencia</button>
-                            </div>
+                <% articulos.forEach(function(articulo) { %>
+                    <div class="item" data-codbar="<%= articulo.codbar %>" data-denom="<%= articulo.denom.toLowerCase() %>">
+                        <img class="product-image" src="/images/<%= articulo.codbar.replace(/\s+/g, '-') %>.jpg" alt="<%= articulo.denom %>" onerror="this.onerror=null; this.src='/images/logo.png';">
+                        <p>Codigo de barra: <strong><%= articulo.codbar %></strong></p>
+                        <h2 class="product-name"><%= articulo.denom %></h2>
+                        <p class="precio">Precio: <span>$<%= articulo.precio.toFixed(2) %></span></p>
+                        <p>Stock Misiones: <strong><%= articulo.stock %></strong></p>
+                        <p>Stock Corrientes: <strong><%= articulo.stkcor %></strong></p>
+                        <input type="number" id="cantidad-<%= articulo.codbar %>" class="quantity-input" placeholder="Cantidad" min="1">
+                        <div class="button-group">
+                            <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Misiones')">Agregar al carrito Misiones</button>
+                            <button class="add-button" onclick="agregarAlCarrito('<%= articulo.codbar %>', 'Corrientes')">Agregar al carrito Corrientes</button>
+                            <button class="equivalence-button" data-codbar="<%= articulo.codbar %>">Ver Equivalencia</button>
                         </div>
-                        
-                    <% }); %>
-                </div>
-                
-
-                <table class="table list-view" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Código de Barra</th>
-                            <th>Nombre del Producto</th>
-                            <th>Precio</th>
-                            <th>Precio Venta</th>
-                            <th>Stock Misiones</th>
-                            <th>Stock Corrientes</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% articulos.forEach(function(articulo) { 
-                            // Calcular el precio con descuento
-                            let precioConDescuento = articulo.precio;
-                            if (articulo.porofe && articulo.porofe !== 0) {
-                                const descuento = (articulo.precio * Math.abs(articulo.porofe)) / 100;
-                                precioConDescuento = articulo.precio - descuento;
-                            }
-                        %>
-                            <tr data-codbar="<%= articulo.codbar %>" data-denom="<%= articulo.denom.toLowerCase() %>">
-                                <td>
-                                    <img class="product-image" src="/images/<%= articulo.codbar.replace(/\s+/g, '-') %>.jpg" alt="<%= articulo.denom %>" onerror="this.onerror=null; this.src='/images/logo.png';" onclick="toggleImageSize(event)">
-                                </td>
-                                <td><%= articulo.codbar %></td>
-                                <td><%= articulo.denom %></td>
-                                <td>
-                                    $<%= precioConDescuento.toFixed(2) %> <!-- Mostrar solo precio con descuento -->
-                                    <% if (articulo.porofe && articulo.porofe !== 0) { %>
-                                        <span class="descuento"> (precio oferta con - <%= Math.abs(articulo.porofe) %>% , a partir de: <%= articulo.canofe %> unidades compradas)</span>
-                                    <% } %>
-                                </td>
-                                <td>$<%= articulo.precio_venta.toFixed(2) %></td>
-                                <td><%= articulo.stock %></td>
-                                <td><%= articulo.stkcor %></td>
-                                <td>
-                                    <div class="button-group">
-                                        <button class="add-button" onclick="abrirModal('<%= articulo.codbar %>', 'Misiones')">Agregar Misiones</button>
-                                        <button class="add-button" onclick="abrirModal('<%= articulo.codbar %>', 'Corrientes')">Agregar Corrientes</button>
-                                        <button class="equivalence-button" data-codbar="<%= articulo.codbar %>">Ver Equivalencia</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
-                
-
-                <!-- Modal para ingresar cantidad -->
-                <div id="cantidadModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close" onclick="cerrarModal()">&times;</span>
-                        <h2>Ingrese la cantidad para <span id="modalTitle"></span></h2>
-                        <input type="number" id="modalCantidad" class="quantity-inputT" placeholder="Cantidad" min="1">
-                        <button id="confirmButton" class="confirm-button" onclick="confirmarAgregar()">Confirmar</button>
                     </div>
-                </div>
-
-                <script>
-                    let articuloSeleccionado = '';
-                    let destinoSeleccionado = '';
-
-                    function abrirModal(codbar, destino) {
-                        articuloSeleccionado = codbar;
-                        destinoSeleccionado = destino;
-                        document.getElementById('modalTitle').innerText = `Artículo ${codbar} - ${destino}`;
-                        document.getElementById('cantidadModal').style.display = 'block';
-                    }
-
-                    function cerrarModal() {
-                        document.getElementById('cantidadModal').style.display = 'none';
-                        document.getElementById('modalCantidad').value = '';
-                    }
-
-                    function confirmarAgregar() {
-                        const cantidad = document.getElementById('modalCantidad').value;
-                        if (cantidad && cantidad > 0) {
-                            agregarAlCarrito(articuloSeleccionado, destinoSeleccionado, cantidad);
-                            cerrarModal();
-                        } else {
-                            alert('Por favor, ingrese una cantidad válida.');
-                        }
-                    }
-
-                    function agregarAlCarrito(codbar, destino, cantidad) {
-                        // Aquí puedes implementar la lógica para agregar al carrito
-                        console.log(`Artículo: ${codbar}, Destino: ${destino}, Cantidad: ${cantidad}`);
-                        // Puedes hacer una llamada AJAX o manejar la lógica en el servidor.
-                    }
-
-                    // Cerrar modal cuando se hace clic fuera del modal
-                    window.onclick = function(event) {
-                        const modal = document.getElementById('cantidadModal');
-                        if (event.target == modal) {
-                            cerrarModal();
-                        }
-                    }
-                </script>
-
+                <% }); %>
             <% } else { %>
                 <p>No se encontraron artículos.</p>
             <% } %>
         </div>
 
-
-        
         <!-- Navegación de paginación -->
         <nav>
             <% if (page > 1) { %>
@@ -199,13 +75,13 @@
                 <div id="misiones" class="column">
                     <h3>Misiones</h3>
                 </div>
-                <div id="corrientes" class="column">
+               <div id="corrientes" class="column">
                     <h3>Corrientes</h3>
                 </div>
             </div>
             <button id="enviar-pedido">Enviar Pedido</button>
         </div>
-    </div>
+    </div> 
     <!-- Modal para mostrar equivalencias -->
     <div id="equivalencias-modal" class="modal">
         <div class="modal-content">
@@ -217,25 +93,8 @@
         </div>
     </div>
     <script>
-            // Función para manejar el clic en la imagen
-            function toggleImageSize(event) {
-                const img = event.target;
-                img.classList.toggle('enlarged'); // Alterna la clase "enlarged" en la imagen
-            }
 
-            // Agregar el evento onclick a todas las imágenes con la clase "product-image"
-            document.querySelectorAll('.product-image').forEach(function(image) {
-                image.onclick = toggleImageSize;
-            });
-            // Cerrar imagen ampliada al hacer clic fuera de ella
-            window.onclick = function(event) {
-                const enlargedImg = document.querySelector('.product-image.enlarged');
-                if (enlargedImg && event.target !== enlargedImg) {
-                    enlargedImg.classList.remove('enlarged');
-                }
-            };
-
-            document.getElementById('toggleViewBtn').addEventListener('click', function() {
+document.getElementById('toggleViewBtn').addEventListener('click', function() {
                 const gridView = document.querySelector('.grid-view');
                 const listView = document.querySelector('.list-view');
                 const button = this;
@@ -258,157 +117,205 @@
                 }
             });
 
-               $(document).ready(function() {
-             $(document).ready(function() {
-            // Abrir el modal del carrito
-            $("#carrito-icon").click(function() {
-                $.get("/carrito", function(data) {
-                    renderItems(data); 
-                });
-            });
-
-            
-            function renderItems(items) {
-               
-                const misionesContainer = $("#misiones");
-                const corrientesContainer = $("#corrientes");
-
-                
-                misionesContainer.html('<h3>Misiones</h3>');
-                corrientesContainer.html('<h3>Corrientes</h3>');
-
-                
-                items.forEach(item => {
-                    
-                    const itemDiv = $(`
-                        <div class="carrito-details">
-                            <p>${item.codbar}</p>
-                            <p>${item.descripcion}</p>
-                            <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
-                            <p>Precio: $${item.precio.toFixed(2)}</p>
-                            <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p>
-                            <p>Articulo para Zona: ${item.zona}</p>
-                            <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
-                            <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button>
-                        </div>
-                    `);
-
-                    
-                    if (item.zona === 1) {
-                        misionesContainer.append(itemDiv);
-                    } else if (item.zona === 2) {
-                        corrientesContainer.append(itemDiv);
-                    }
-                });
-
-               
-                $("#carrito-modal").show();
-            }
-            });
     
-            // Cerrar el modal
-            $(".close").click(function() {
-                $("#carrito-modal").hide();
-            });
-    
-            // Cerrar el modal si se hace clic fuera de él
-            $(window).click(function(event) {
-                if (event.target == document.getElementById('carrito-modal')) {
-                    $("#carrito-modal").hide();
-                }
-            });
-    
-    // Manejar el envío del pedido
-           $("#enviar-pedido").click(function() {
-                // Preguntar a qué sucursal desea enviar el pedido
-                const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+              $(document).ready(function() {
+    // Abrir el modal del carrito
+    $("#carrito-icon").click(function() {
+        $.get("/carrito", function(data) {
+            renderItems(data); 
+        });
+    });
 
-                if (sucursal === null) {
-                    return; // Si el usuario cancela, no se envía el pedido
-                }
+    function renderItems(items) {
+        const misionesContainer = $("#misiones");
+        const corrientesContainer = $("#corrientes");
 
-                // Definir zona en base a la sucursal seleccionada
-                let zona;
-                if (sucursal.toLowerCase() === '1') {
-                    zona = 1; // Zona 1 es Misiones
-                } else if (sucursal.toLowerCase() === '2') {
-                    zona = 2; // Zona 2 es Corrientes
-                } else {
-                    alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
-                    return;
-                }
+        // Limpiar contenido actual y agregar encabezado
+        misionesContainer.html('<h3>Misiones</h3>');
+        corrientesContainer.html('<h3>Corrientes</h3>');
 
-                // Pedir transporte y observación
-                const transporte = prompt("Por favor, escribe el transporte:");
-                const obs = prompt("Por favor, escribe una observación (opcional):");
+        items.forEach(item => {
+            const itemDiv = $(`
+                <div class="carrito-details">
+                    <p>${item.codbar}</p>
+                    <p>${item.descripcion}</p>
+                    <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
+                    <p class="precio">Precio: $${item.precio.toFixed(2)}</p>
+                    <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p>
+                    <p>Articulo para Zona: ${item.zona}</p>
+                    <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
+                    <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button>
+                </div>
+            `);
 
-                // Realizar la solicitud POST con la zona seleccionada
-                $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
-                    .done(function(response) {
-                        alert(response.message);
-                        $("#carrito-modal").hide(); // Cerrar el modal del carrito
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al enviar el pedido.");
-                    });
-            });
-
-
-    
-            // Actualizar la cantidad
-            $(document).on('click', '.actualizar-btn', function() {
-                const codbar = $(this).data('codbar');
-                const nuevaCantidad = $(this).siblings('.cantidad-input').val();
-    
-                $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
-                    .done(function(response) {
-                        alert("Cantidad actualizada con éxito.");
-                        // Recalcular y actualizar el total
-                        actualizarTotal();
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al actualizar la cantidad.");
-                    });
-            });
-    
-            // Eliminar artículo del carrito
-            $(document).on('click', '.eliminar-btn', function() {
-                const codbar = $(this).data('codbar');
-    
-                $.post("/eliminar-articulo", { codbar: codbar })
-                    .done(function(response) {
-                        alert("Artículo eliminado con éxito.");
-                        // Volver a cargar los artículos del carrito
-                        $("#carrito-icon").click();
-                    })
-                    .fail(function() {
-                        alert("Hubo un problema al eliminar el artículo.");
-                    });
-            });
-    
-            // Función para recalcular el total del carrito
-            function actualizarTotal() {
-                let total = 0;
-    
-                $(".carrito-item").each(function() {
-                    const cantidad = $(this).find('.cantidad-input').val();
-                    const precio = parseFloat($(this).find('p').eq(1).text().replace("Precio: $", ""));
-                    const itemTotal = precio * cantidad; // Calcula el total por artículo
-                    $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`); // Actualiza el total del artículo
-                    total += itemTotal; // Sumar al total general
-                });
-    
-                $(".total").text(`Total: $${total.toFixed(2)}`); // Actualiza el total del carrito
+            // Añadir el artículo a la zona correspondiente
+            if (item.zona === 1) {
+                misionesContainer.append(itemDiv);
+            } else if (item.zona === 2) {
+                corrientesContainer.append(itemDiv);
             }
         });
+
+        // Calcular y mostrar los totales iniciales
+        actualizarTotal();
+
+        $("#carrito-modal").show();
+    }
+
+    // Cerrar el modal del carrito
+    $(".close").click(function() {
+        $("#carrito-modal").hide();
+    });
+
+    // Cerrar el modal si se hace clic fuera de él
+    $(window).click(function(event) {
+        if (event.target == document.getElementById('carrito-modal')) {
+            $("#carrito-modal").hide();
+        }
+    });
+
+    // Manejar el envío del pedido
+    $("#enviar-pedido").click(function() {
+        const sucursal = prompt("¿A qué sucursal deseas enviar el pedido? (escriba 1 para Misiones o 2 para Corrientes)");
+
+        if (sucursal === null) return;
+
+        let zona;
+        if (sucursal === '1') zona = 1;
+        else if (sucursal === '2') zona = 2;
+        else {
+            alert("Sucursal no válida. Por favor, elige 'Misiones' o 'Corrientes'.");
+            return;
+        }
+
+        const transporte = prompt("Por favor, escribe el transporte:");
+        const obs = prompt("Por favor, escribe una observación (opcional):");
+
+        $.post("/enviar-pedido", { transporte: transporte, obs: obs, zona: zona })
+            .done(function(response) {
+                alert(response.message);
+                $("#carrito-modal").hide();
+            })
+            .fail(function() {
+                alert("Hubo un problema al enviar el pedido.");
+            });
+    });
+
+    // Actualizar la cantidad
+    $(document).on('click', '.actualizar-btn', function() {
+        const codbar = $(this).data('codbar');
+        const nuevaCantidad = $(this).siblings('.cantidad-input').val();
+
+        $.post("/actualizar-cantidad", { codbar: codbar, cantidad: nuevaCantidad })
+            .done(function(response) {
+                alert("Cantidad actualizada con éxito.");
+                actualizarTotal();
+            })
+            .fail(function() {
+                alert("Hubo un problema al actualizar la cantidad.");
+            });
+    });
+
+    // Eliminar artículo del carrito
+    $(document).on('click', '.eliminar-btn', function() {
+        const codbar = $(this).data('codbar');
+
+        $.post("/eliminar-articulo", { codbar: codbar })
+            .done(function(response) {
+                alert("Artículo eliminado con éxito.");
+                $("#carrito-icon").click();
+            })
+            .fail(function() {
+                alert("Hubo un problema al eliminar el artículo.");
+            });
+    });
+
+    // Función para recalcular el total de cada zona
+    function actualizarTotal() {
+        let totalMisiones = 0;
+        let totalCorrientes = 0;
+
+        $("#misiones .carrito-details").each(function() {
+            const cantidad = $(this).find('.cantidad-input').val();
+            const precio = parseFloat($(this).find('.precio').text().replace("Precio: $", ""));
+            const itemTotal = precio * cantidad;
+            $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`);
+            totalMisiones += itemTotal;
+        });
+
+        $("#corrientes .carrito-details").each(function() {
+            const cantidad = $(this).find('.cantidad-input').val();
+            const precio = parseFloat($(this).find('.precio').text().replace("Precio: $", ""));
+            const itemTotal = precio * cantidad;
+            $(this).find('.item-total').text(`$${itemTotal.toFixed(2)}`);
+            totalCorrientes += itemTotal;
+        });
+
+        // Mostrar los totales de cada zona
+        $("#misiones").append(`<p class="total">Total Misiones: $${totalMisiones.toFixed(2)}</p>`);
+        $("#corrientes").append(`<p class="total">Total Corrientes: $${totalCorrientes.toFixed(2)}</p>`);
+    }
+     // Abrir el modal de la calculadora
+            // Abrir el modal de la calculadora
+            $("#calculator-icon").click(function() {
+                // Obtener los valores de util y dtofab desde el servidor
+                $.get("/obtener-valores", function(data) {
+                    $("#util").val(data.util); // Asigna el valor de utilidad al input correcto
+                    $("#dtofab").val(data.dtofab); // Asigna el valor de descuento al input correcto
+                    $("#calculator-modal").show(); // Mostrar el modal
+                }).fail(function() {
+                    alert("Error al obtener los valores.");
+                });
+            });
+
+
+            // Cerrar el modal de la calculadora
+            $(".close-calculator").click(function() {
+                $("#calculator-modal").hide();
+            });
+
+            // Cerrar el modal si se hace clic fuera de él
+            $(window).click(function(event) {
+                if (event.target == document.getElementById('calculator-modal')) {
+                    $("#calculator-modal").hide();
+                }
+            });
+
+            // Manejar el envío del formulario de la calculadora
+            $("#utilidad-form").submit(function(event) {
+                event.preventDefault(); // Evitar el envío normal del formulario
+                const utilidad = $("#util").val(); // Cambiar a 'util'
+                const descuento = $("#dtofab").val(); // Cambiar a 'dtofab'
+
+                $.post("/guardar-valores", { util: utilidad, dtofab: descuento }) // Cambiar nombres aquí
+                    .done(function(response) {
+                        alert("Valores guardados con éxito.");
+                        $("#calculator-modal").hide(); // Cerrar el modal de la calculadora
+                    })
+                    .fail(function() {
+                        alert("Hubo un problema al guardar los valores.");
+                    });
+            });
+
+            // Cerrar sesión
+            $("#logout-button").click(function() {
+                $.post("/logout", function(response) {
+                    alert(response.message);
+                    window.location.href = "/"; // Redirigir a la página de inicio
+                });
+            });
+        });
       // Función para buscar artículos
-function buscarArticulos() {
+      function buscarArticulos() {
     const searchTerm = document.getElementById('searchInput').value;
 
     if (!searchTerm) {
         alert('Por favor, ingrese un término de búsqueda.');
         return;
     }
+
+    // Mostrar el loader antes de realizar la búsqueda
+    document.getElementById('loader').style.display = 'block';
 
     fetch('/buscar-articulos', {
         method: 'POST',
@@ -451,14 +358,14 @@ function buscarArticulos() {
                 const row = document.createElement('tr');
                 row.setAttribute('data-codbar', articulo.codbar);
                 row.setAttribute('data-denom', articulo.denom.toLowerCase());
+
                 // Dividir el nombre del producto en dos líneas
                 const nombreDividido = articulo.denom.split(' '); // Divide el nombre por espacio
                 const nombreFinal = nombreDividido.length > 1 ? `${nombreDividido[0]}<br>${nombreDividido.slice(1).join(' ')}` : articulo.denom;
+                
                 // Dividir el código de barras en dos líneas
                 const midIndex = Math.ceil(articulo.codbar.length / 2); // Encuentra el índice medio
                 const codbarDividido = `${articulo.codbar.slice(0, midIndex)}<br>${articulo.codbar.slice(midIndex)}`;
-
- 
 
                 // Crear la columna de precio con el descuento (si aplica)
                 let precioOriginal = articulo.precio;
@@ -471,16 +378,16 @@ function buscarArticulos() {
                 }
 
                 // Generar el contenido de la columna del precio
-                let precioHTML = `$${precioConDescuento.toFixed(2)}`;
+                let precioHTML = `<span class="precio-texto">$${precioConDescuento.toFixed(2)}</span>`; // Agregamos la clase para ocultar el monto
+
                 if (articulo.porofe && articulo.porofe !== 0) {
                     precioHTML += ` <span class="descuento">(Precio oferta con - ${Math.abs(articulo.porofe)}%, a partir de: ${articulo.canofe} unidades compradas)</span><br>`;
                 }
 
-
                 row.innerHTML = `
                     <td><img class="product-image" src="/images/${articulo.codbar.replace(/\s+/g, '-')}.jpg" alt="${articulo.denom}" onerror="this.onerror=null; this.src='/images/logo.png';" onclick="toggleImageSize(event)"></td>
                     <td>${codbarDividido}</td>
-                     <td>${nombreFinal}</td>
+                    <td>${nombreFinal}</td>
                     <td>${precioHTML}</td> <!-- Aquí se incluye el precio con el descuento -->
                     <td>$${articulo.precio_venta.toFixed(2)}</td>
                     <td>${articulo.stock}</td>
@@ -497,7 +404,6 @@ function buscarArticulos() {
                     </td>
                 `;
 
-
                 tbody.appendChild(row);
             });
 
@@ -510,8 +416,13 @@ function buscarArticulos() {
     .catch(error => {
         console.error('Error:', error);
         alert('Ocurrió un error en la búsqueda de artículos.');
+    })
+    .finally(() => {
+        // Ocultar el loader después de recibir la respuesta
+        document.getElementById('loader').style.display = 'none';
     });
 }
+
 //*********////
 function buscarequi(codbar) {
     if (!codbar) {
@@ -580,7 +491,8 @@ function buscarequi(codbar) {
                 }
 
                 // Generar el contenido de la columna del precio
-                let precioHTML = `$${precioConDescuento.toFixed(2)}`;
+                //let precioHTML = `$${precioConDescuento.toFixed(2)}`;
+                let precioHTML = `<span class="precio-texto">$${precioConDescuento.toFixed(2)}</span>`;
                 if (articulo.porofe && articulo.porofe !== 0) {
                     precioHTML += ` <span class="descuento">(Precio oferta con - ${Math.abs(articulo.porofe)}%, a partir de: ${articulo.canofe} unidades compradas)</span><br>`;
                 }
@@ -739,6 +651,142 @@ function verEquivalencias(codbar) {
 
 
 
+document.getElementById('filtrarProveedorBtn').onclick = function() {
+    openModal();
+    cargarProveedores();
+};
+
+function openModal() {
+    document.getElementById('filtrarpro').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('filtrarpro').style.display = 'none';
+}
+
+function cargarProveedores() {
+    fetch('/cargar-proveedores') // Cambia esta ruta según tu configuración
+        .then(response => response.json())
+        .then(data => {
+            const proveedoresGrid = document.getElementById('proveedoresGrid');
+            proveedoresGrid.innerHTML = ''; // Limpiar resultados anteriores
+
+            data.proveedores.forEach(proveedor => {
+                const proveedorDiv = document.createElement('div');
+                proveedorDiv.className = 'proveedor-item'; // Clase para cada proveedor
+
+                proveedorDiv.innerHTML = `
+                    <div class="proveedor-imagen-container">
+                        <img src="/images/${proveedor.codigo}.jpg" alt="${proveedor.razon}" class="proveedor-imagen" onclick="filtrarPorProveedor('${proveedor.codigo}')">
+                    </div>
+                    <p>${proveedor.razon}</p>
+                `;
+
+                proveedoresGrid.appendChild(proveedorDiv);
+            });
+        })
+        .catch(error => console.error('Error al cargar proveedores:', error));
+}
+
+function filtrarPorProveedor(event) {
+    const proveedorId = event.target.getAttribute('data-codigo'); // Obtiene el ID del proveedor
+
+    // Muestra el loader
+    document.getElementById('loader').style.display = 'block';
+
+    fetch('/filtrar-articulos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ proveedorId }) // Envía el ID del proveedor al servidor
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log("Datos recibidos:", result); // Verifica los datos recibidos
+
+        const articulosGrid = document.getElementById('articulosGrid');
+        articulosGrid.innerHTML = ''; // Limpiar resultados anteriores
+
+        if (result.success) { // Verifica si la respuesta fue exitosa
+            const table = document.createElement('table');
+            table.className = 'table list-view';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Imagen</th>
+                    <th>Código de Barra</th>
+                    <th>Nombre del Producto</th>
+                    <th>Precio</th>
+                    <th>Precio de Venta</th>
+                    <th>Stock Misiones</th>
+                    <th>Stock Corrientes</th>
+                    <th>Cantidad</th>
+                    <th>Acciones</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            result.articulos.forEach(articulo => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-codbar', articulo.codbar);
+                row.setAttribute('data-denom', articulo.denom.toLowerCase());
+
+                const nombreDividido = articulo.denom.split(' ');
+                const nombreFinal = nombreDividido.length > 1 ? `${nombreDividido[0]}<br>${nombreDividido.slice(1).join(' ')}` : articulo.denom;
+                const midIndex = Math.ceil(articulo.codbar.length / 2);
+                const codbarDividido = `${articulo.codbar.slice(0, midIndex)}<br>${articulo.codbar.slice(midIndex)}`;
+
+                let precioHTML = `$${articulo.precio.toFixed(2)}`;
+                if (articulo.porofe && articulo.porofe !== 0) {
+                    const descuento = (articulo.precio * Math.abs(articulo.porofe)) / 100;
+                    const precioConDescuento = articulo.precio - descuento;
+                    precioHTML = `$${precioConDescuento.toFixed(2)} <span class="descuento">(Precio oferta con -${Math.abs(articulo.porofe)}%)</span>`;
+                }
+                
+                row.innerHTML = `
+                    <td><img class="product-image" src="/images/${articulo.codbar.replace(/\s+/g, '-')}.jpg" alt="${articulo.denom}" onerror="this.onerror=null; this.src='/images/logo.png';" onclick="toggleImageSize(event)"></td>
+                    <td>${codbarDividido}</td>
+                    <td>${nombreFinal}</td>
+                    <td><span class="precio-texto">${precioHTML}</span></td>
+                    <td>$${articulo.precio_venta.toFixed(2)}</td>
+                    <td>${articulo.stock}</td>
+                    <td>${articulo.stkcor}</td>
+                    <td>
+                        <input type="number" id="cantidad-${articulo.codbar}" class="quantity-input" placeholder="Cantidad" min="1">
+                    </td>
+                    <td>
+                        <div class="button-group">
+                            <button class="add-button" onclick="agregarAlCarrito('${articulo.codbar}', 'Misiones', document.getElementById('cantidad-${articulo.codbar}').value)">Agregar Misiones</button>
+                            <button class="add-button" onclick="agregarAlCarrito('${articulo.codbar}', 'Corrientes', document.getElementById('cantidad-${articulo.codbar}').value)">Agregar Corrientes</button>
+                            <button class="equivalence-button" onclick="verEquivalencias('${articulo.codbar}')">Ver Equivalencia</button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            articulosGrid.appendChild(table);
+
+            // Llamamos a la función togglePrecio cada vez que se actualiza la tabla
+            togglePrecio();
+        } else {
+            articulosGrid.innerHTML = '<p>No se encontraron artículos para este proveedor.</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al filtrar los artículos.');
+    })
+    .finally(() => {
+        // Oculta el loader independientemente del resultado
+        document.getElementById('loader').style.display = 'none';
+    });
+}
     </script>
     
 </body>

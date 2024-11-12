@@ -358,17 +358,17 @@ input[type="text"]:focus {
 
 /* Estilos para cada columna (Región 1 y Región 2) */
 #misionesContainer,
-#region2Container {
+#corrientesContainer {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: #f07c04;
 }
 
 /* Título de cada columna */
 #misionesContainer h3,
-#region2Container h3 {
+#corrientesContainer h3 {
     text-align: center;
     color: #333;
     margin-bottom: 15px;
@@ -408,4 +408,52 @@ input[type="text"]:focus {
 .carrito-details .actualizar-btn:hover,
 .carrito-details .eliminar-btn:hover {
     opacity: 0.9;
+}
+
+/* Estilos básicos para main-content */
+.main-content {
+    text-align: center;
+    padding: 20px;
+}
+
+/* Botones dentro de buttons-container */
+.buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    width: 120px;
+    transition: transform 0.3s;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+    .buttons-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 80%; /* Ancho del botón en pantallas pequeñas */
+        max-width: 200px;
+    }
 }
