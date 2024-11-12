@@ -349,3 +349,63 @@ input[type="text"]:focus {
 #utilidad-form > * {
     margin-bottom: 15px; /* Margen inferior */
 }
+#carrito-modal .container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Estilos para cada columna (Región 1 y Región 2) */
+#misionesContainer,
+#region2Container {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+/* Título de cada columna */
+#misionesContainer h3,
+#region2Container h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Estilos para los artículos dentro de cada columna */
+.carrito-details {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.carrito-details p {
+    margin: 5px 0;
+}
+
+.carrito-details .cantidad-input {
+    width: 50px;
+    margin-right: 10px;
+}
+
+.carrito-details .actualizar-btn,
+.carrito-details .eliminar-btn {
+    margin-top: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.carrito-details .eliminar-btn {
+    background-color: #dc3545;
+}
+
+.carrito-details .actualizar-btn:hover,
+.carrito-details .eliminar-btn:hover {
+    opacity: 0.9;
+}

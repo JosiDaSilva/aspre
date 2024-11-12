@@ -191,12 +191,17 @@
         </nav>
     </div>
    <!-- Modal para mostrar el carrito -->
-   <div id="carrito-modal" class="modal">
+    <div id="carrito-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Carrito de Compras</h2>
-            <div id="carrito-items">
-                <!-- Los artículos del carrito se cargarán aquí -->
+             <div class="container">
+                <div id="misiones" class="column">
+                    <h3>Misiones</h3>
+                </div>
+                <div id="corrientes" class="column">
+                    <h3>Corrientes</h3>
+                </div>
             </div>
             <button id="enviar-pedido">Enviar Pedido</button>
         </div>
@@ -254,39 +259,51 @@
             });
 
                $(document).ready(function() {
-            // Abrir el modal
+             $(document).ready(function() {
+            // Abrir el modal del carrito
             $("#carrito-icon").click(function() {
                 $.get("/carrito", function(data) {
-                    let itemsHtml = '';
-                    let total = 0; // Variable para calcular el total
-    
-                    if (data.length > 0) {
-                        data.forEach(item => {
-                            itemsHtml += `
-                                <div class="carrito-item">
-                                    <img src="/images/logo.png" class="carrito-img">
-                                    <div class="carrito-details">
-                                        <p>${item.codbar}</p>
-                                        <p>${item.descripcion}</p>                                       
-                                        <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
-                                        <p>Precio: $${item.precio.toFixed(2)}</p>
-                                        <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p> <!-- Muestra el total del artículo -->
-                                        <p>Articulo para Zona: ${item.zona}</p> <!-- Aquí se muestra la zona -->
-                                        <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
-                                        <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button> <!-- Botón de eliminar -->
-                                       
-                                    </div>
-                                </div>`;
-                            total += item.precio * item.cantidad; // Sumar al total
-                        });
-                    } else {
-                        itemsHtml = '<p>No hay artículos en el carrito.</p>';
-                    }
-    
-                    $("#carrito-items").html(itemsHtml);
-                    $("#carrito-items").append(`<p class="total">Total: $${total.toFixed(2)}</p>`); // Mostrar total
-                    $("#carrito-modal").show();
+                    renderItems(data); 
                 });
+            });
+
+            
+            function renderItems(items) {
+               
+                const misionesContainer = $("#misiones");
+                const corrientesContainer = $("#corrientes");
+
+                
+                misionesContainer.html('<h3>Misiones</h3>');
+                corrientesContainer.html('<h3>Corrientes</h3>');
+
+                
+                items.forEach(item => {
+                    
+                    const itemDiv = $(`
+                        <div class="carrito-details">
+                            <p>${item.codbar}</p>
+                            <p>${item.descripcion}</p>
+                            <input type="number" class="cantidad-input" value="${item.cantidad}" min="1" data-codbar="${item.codbar}">
+                            <p>Precio: $${item.precio.toFixed(2)}</p>
+                            <p>Total: <span class="item-total">$${(item.precio * item.cantidad).toFixed(2)}</span></p>
+                            <p>Articulo para Zona: ${item.zona}</p>
+                            <button class="actualizar-btn" data-codbar="${item.codbar}">Actualizar</button>
+                            <button class="eliminar-btn" data-codbar="${item.codbar}">✖</button>
+                        </div>
+                    `);
+
+                    
+                    if (item.zona === 1) {
+                        misionesContainer.append(itemDiv);
+                    } else if (item.zona === 2) {
+                        corrientesContainer.append(itemDiv);
+                    }
+                });
+
+               
+                $("#carrito-modal").show();
+            }
             });
     
             // Cerrar el modal
